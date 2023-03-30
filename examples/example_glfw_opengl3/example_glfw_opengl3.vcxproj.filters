@@ -77,5 +77,8 @@
     <None Include="..\README.txt">
       <Filter>sources\assets</Filter>
     </None>
+    <None Include="plan__.json">
+      <Filter>sources\assets</Filter>
+    </None>
   </ItemGroup>
 </Project>

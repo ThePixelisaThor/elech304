@@ -10,6 +10,7 @@
 
 #include "../libs/nlohmann/json.hpp"
 using json = nlohmann::json;
+using namespace glm;
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -26,6 +27,12 @@ GLuint texture_id;
 GLuint shader_white;
 GLuint shader_red;
 GLuint shader_blue;
+
+struct FancyVector {
+    vec2 a;
+    vec2 b;
+    vec2 vector;
+};
 
 const char* vertex_shader_code_resize_1000x = R"*(
 #version 330
@@ -63,11 +70,9 @@ void main()
 }
 )*";
 
-GLuint VBO;  // buffer object
-GLuint VAO; // vertex array
 int array_size = 0;
 
-void create_line(glm::vec2 a, glm::vec2 b)
+void create_line(vec2 a, vec2 b, GLuint &VBO, GLuint &VAO)
 {
     GLfloat vertices[] = {
         a.x, a.y, 0.0f,
@@ -75,45 +80,15 @@ void create_line(glm::vec2 a, glm::vec2 b)
         b.x, b.y, 0.0f,
     };
 
-    glGenVertexArrays(1, &VAO);
+    // setup line
     glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    array_size = sizeof(vertices);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
 }
 
-void create_line()
-{
-    GLfloat vertices[] = {
-        -500.0f, 500.0f, 0.0f,
-        -500.0f, 500.0f, 0.0f,
-        500.0f, -500.0f, 0.0f,
-    };
-
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    array_size = sizeof(vertices);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
-void create_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c)
+void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO)
 {
     GLfloat vertices[] = {
         a.x, a.y, 0.0f,
@@ -136,30 +111,7 @@ void create_triangle(glm::vec2 a, glm::vec2 b, glm::vec2 c)
     glBindVertexArray(0);
 }
 
-void create_triangle()
-{
-    GLfloat vertices[] = {
-        1000.0f, -100.0f, 0.0f,
-        100.0f, 100.0f, 0.0f,
-        -100.0f, 100.0f, 0.0f
-    };
-
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    array_size = sizeof(vertices);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
-void create_rectangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d)
+void create_rectangle(vec2 a, vec2 b, vec2 c, vec2 d, GLuint& VBO, GLuint& VAO)
 {
     GLfloat vertices[] = {
         a.x, a.y, 0.0f,
@@ -186,46 +138,19 @@ void create_rectangle(glm::vec2 a, glm::vec2 b, glm::vec2 c, glm::vec2 d)
 
 }
 
-void create_rectangle()
-{
-    GLfloat vertices[] = {
-        100.0f, -100.0f, 0.0f,
-        100.0f, 100.0f, 0.0f,
-        -100.0f, 100.0f, 0.0f,
-        100.0f, -100.0f, 0.0f,
-        -100.0f, -100.0f, 0.0f,
-        -100.0f, 100.0f, 0.0f,
-    };
-
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    array_size = sizeof(vertices);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
-}
-
-void create_circle(float radius, float pos_x, float pos_y) {
+void create_circle(float radius, float pos_x, float pos_y, GLuint& VBO, GLuint& VAO) {
     float x, y;
-    glm::vec2 center(pos_x * 10.f, pos_y * 10.f);
+    vec2 center(pos_x * 10.f, pos_y * 10.f);
     for (double i = 0; i <= 360;) {
         x = radius * cos(i) + pos_x * 10.f;
         y = radius * sin(i) + pos_y * 10.f;
-        glm::vec2 a(x, y);
+        vec2 a(x, y);
         i = i + .5;
         x = radius * cos(i) + pos_x * 10.f;
         y = radius * sin(i) + pos_y * 10.f;
-        glm::vec2 b(x, y);
+        vec2 b(x, y);
         i = i + .5;
-        create_triangle(a, b, center);
+        create_triangle(a, b, center, VBO, VAO);
         glUseProgram(shader_white);
         glBindVertexArray(VAO);
         glDrawArrays(GL_TRIANGLES, 0, 1 + array_size);
@@ -356,9 +281,37 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     std::ifstream f("plan.json");
     json data = json::parse(f);
 
+    std::vector<FancyVector> walls; // vector is a list with access by id
+
+    // parse wall vectors
+    for (int i = 0; i < data.size(); i++) {
+        vec2 a(data[i]["point_ax"] * 10.f, data[i]["point_ay"] * 10.f);
+        vec2 b(data[i]["point_bx"] * 10.f, data[i]["point_by"] * 10.f);
+
+        FancyVector temp_vector = { a, b, b - a};
+        walls.push_back(temp_vector);
+    }
+
 
     float pos_x = 20.f;
     float pos_y = -10.f;
+
+    int material = 0;
+
+
+    // lines
+    const int line_count = 50;
+    unsigned int VBO_lines[line_count], VAO_lines[line_count];
+
+    // init walls
+    FancyVector wall;
+    unsigned int VBO_walls[100], VAO_walls[100]; // only for walls
+    glGenVertexArrays(100, VAO_walls); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(100, VBO_walls);
+    for (int i = 0; i < walls.size(); i++) {
+        create_line(walls[i].a, walls[i].b, VBO_walls[i], VAO_walls[i]);
+    }
+
 
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
@@ -375,36 +328,90 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // GUI code goes here
 
         ImGui::Begin("Settings");
-        static float value = 0.0f;
         ImGui::DragFloat("Value pos_x", &pos_x);
         ImGui::DragFloat("Value pos_y", &pos_y);
         ImGui::End();
 
         ImGui::Begin("Circle color");
-        float color = 0.f;
+        static float color = 0.f;
         ImGui::ColorPicker3("##MyColor##5", (float*)&color, ImGuiColorEditFlags_PickerHueBar | ImGuiColorEditFlags_NoSidePreview | ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_NoAlpha);
+        ImGui::End(); 
+
+        ImGui::Begin("Metrics");
+        ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::End();
 
-        ImGui::Render();
+        ImGui::Render(); // render GUI
+        
 
         // OpenGL code goes here
 
-        for (int i = 0; i < data.size(); i++) {
-            glm::vec2 a(data[i]["point_ax"] * 10.f, data[i]["point_ay"]*10.f);
-            glm::vec2 b(data[i]["point_bx"] * 10.f, data[i]["point_by"]*10.f);
-            create_line(a, b);
-            int material = data[i]["material_id"];
-            glUseProgram(material == 1 ? shader_blue : material == 2 ? shader_red : shader_white);
-            glBindVertexArray(VAO);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glDrawArrays(GL_TRIANGLES, 0, 1 + array_size);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        // rays
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glUseProgram(shader_white);
+        vec2 center(pos_x * 10.f, pos_y * 10.f);
+        for (int i = 0; i < line_count; i++) {
+            float dx = cos(i * 2.f / line_count * 3.1415f); // on pourra opti ça
+            float dy = sin(i * 2.f / line_count * 3.1415f);
+            vec2 direction(dx, dy);
+
+            float t = 0;
+            float s = 0;
+            // calculating intersection
+            vec2 best_intersection(-1000, -1000);
+            double best_distance = 1000000;
+
+            for (int w = 0; w < walls.size(); w ++) {
+                wall = walls[w];
+                if (wall.vector.y == 0) {
+                    t = (wall.a.y - center.y) / direction.y;
+                    s = (center.x + direction.x * t - wall.a.x) / wall.vector.x;
+                }
+                else {
+                    t = wall.vector.y / (direction.x * wall.vector.y - wall.vector.x * direction.y) * (wall.a.x - center.x + wall.vector.x * (center.y - wall.a.y) / wall.vector.y);
+                    s = (center.y + direction.y * t - wall.a.y) / wall.vector.y;
+                }
+
+                if (t <= 0 || t > 100000 || s < 0 || s > 1) continue;
+
+                vec2 intersection = vec2(center.x + t * direction.x, center.y + t * direction.y);
+                double distance = length(intersection - center);
+
+                if (distance < best_distance) {
+                    best_distance = distance;
+                    best_intersection = intersection;
+                }
+            }
+            if (best_intersection.x == -1000 && best_intersection.y == -1000) continue;
+
+            create_line(center, best_intersection, VBO_lines[i], VAO_lines[i]);
+            
+
+            glBindVertexArray(VAO_lines[i]);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
         }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
+        // drawing walls
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        for (int i = 0; i < walls.size(); i++) {
+            // draw line
+            material = data[i]["material_id"];
+            glUseProgram(material == 1 ? shader_blue : material == 2 ? shader_red : shader_white);
+            glBindVertexArray(VAO_walls[i]);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
 
         // draw circle
-        create_circle(15.f, pos_x, pos_y);
+        // create_circle(15.f, pos_x, pos_y, VBO, VAO);
 
-        glBindVertexArray(0);
+        // draw rays around circle
+        
+
         glUseProgram(0);
 
 
