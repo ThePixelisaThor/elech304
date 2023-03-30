@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <math.h>
 
 #include "../libs/GL/glew.h"
 #include <GLFW\glfw3.h>
@@ -28,11 +29,21 @@ GLuint shader_white;
 GLuint shader_red;
 GLuint shader_blue;
 
-struct FancyVector {
-    vec2 a;
-    vec2 b;
-    vec2 vector;
+class FancyVector {
+    public:
+        vec2 a;
+        vec2 b;
+        vec2 v;
+        FancyVector() {
+        };
+        FancyVector(vec2 a, vec2 b, vec2 v);
 };
+
+FancyVector::FancyVector(vec2 v1, vec2 v2, vec2 v3) {
+    a = v1;
+    b = v2;
+    v = v3;
+}
 
 const char* vertex_shader_code_resize_1000x = R"*(
 #version 330
@@ -288,7 +299,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         vec2 a(data[i]["point_ax"] * 10.f, data[i]["point_ay"] * 10.f);
         vec2 b(data[i]["point_bx"] * 10.f, data[i]["point_by"] * 10.f);
 
-        FancyVector temp_vector = { a, b, b - a};
+        FancyVector temp_vector(a, b, b-a);
         walls.push_back(temp_vector);
     }
 
@@ -363,13 +374,13 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
             for (int w = 0; w < walls.size(); w ++) {
                 wall = walls[w];
-                if (wall.vector.y == 0) {
+                if (wall.v.y == 0) {
                     t = (wall.a.y - center.y) / direction.y;
-                    s = (center.x + direction.x * t - wall.a.x) / wall.vector.x;
+                    s = (center.x + direction.x * t - wall.a.x) / wall.v.x;
                 }
                 else {
-                    t = wall.vector.y / (direction.x * wall.vector.y - wall.vector.x * direction.y) * (wall.a.x - center.x + wall.vector.x * (center.y - wall.a.y) / wall.vector.y);
-                    s = (center.y + direction.y * t - wall.a.y) / wall.vector.y;
+                    t = wall.v.y / (direction.x * wall.v.y - wall.v.x * direction.y) * (wall.a.x - center.x + wall.v.x * (center.y - wall.a.y) / wall.v.y);
+                    s = (center.y + direction.y * t - wall.a.y) / wall.v.y;
                 }
 
                 if (t <= 0 || t > 100000 || s < 0 || s > 1) continue;
