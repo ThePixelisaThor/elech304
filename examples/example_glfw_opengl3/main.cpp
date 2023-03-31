@@ -28,6 +28,7 @@ GLuint texture_id;
 GLuint shader_white;
 GLuint shader_red;
 GLuint shader_blue;
+GLuint shader_yellow;
 
 class FancyVector {
     public:
@@ -78,6 +79,15 @@ out vec4 color;
 void main()
 {
 	color = vec4(0.0, 0.0, 1.0, 1.0);
+}
+)*";
+
+const char* fragment_shader_code_yellow = R"*(
+#version 330
+out vec4 color;
+void main()
+{
+	color = vec4(1.0, 1.0, 0.0, 1.0);
 }
 )*";
 
@@ -230,6 +240,7 @@ void create_shaders()
     create_shader(shader_white, fragment_shader_code_white);
     create_shader(shader_red, fragment_shader_code_red);
     create_shader(shader_blue, fragment_shader_code_blue);
+    create_shader(shader_yellow, fragment_shader_code_yellow);
 }
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
@@ -303,6 +314,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         walls.push_back(temp_vector);
     }
 
+    unsigned int VBO_zones[342], VAO_zones[342]; // only for zones
+    glGenVertexArrays(342, VAO_zones); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(342, VBO_zones);
+    // generate local zones
+
+    for (int j = 0; j <= 140; j++) {
+        create_line(vec2(0.0, -j * 0.5 * 10.f), vec2(100.0 * 10.f, -j * 0.5 * 10.f), VBO_zones[j], VAO_zones[j]);
+    }
+    for (int i = 0; i <= 200; i++) {
+        create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i]);
+    }
 
     float pos_x = 20.f;
     float pos_y = -10.f;
@@ -356,6 +378,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         
 
         // OpenGL code goes here
+
+        //drawing local zones
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glUseProgram(shader_yellow);
+        for (int i = 0; i < 342; i++) {
+            // draw line
+            glBindVertexArray(VAO_zones[i]);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+        }
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // rays
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -414,7 +446,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 
 
         // draw circle
