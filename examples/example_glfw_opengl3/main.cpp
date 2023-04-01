@@ -10,14 +10,17 @@
 #include "glm/gtc/type_ptr.hpp"
 
 #include "../libs/nlohmann/json.hpp"
-using json = nlohmann::json;
-using namespace glm;
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 #include <wtypes.h>
 #include <fstream>
+#include "fancy_vector.h"
+#include "vector_math.h"
+
+using json = nlohmann::json;
+using namespace glm;
 
 const GLint WIDTH = 1920;
 const GLint HEIGHT = 1080;
@@ -25,141 +28,100 @@ const GLint HEIGHT = 1080;
 GLuint FBO;
 GLuint RBO;
 GLuint texture_id;
-GLuint shader_white;
-GLuint shader_red;
-GLuint shader_blue;
-GLuint shader_yellow;
+GLuint shader;
 
-class FancyVector {
-    public:
-        vec2 a;
-        vec2 b;
-        vec2 v;
-        FancyVector() {
-        };
-        FancyVector(vec2 a, vec2 b, vec2 v);
+glm::mat4 MVP = glm::mat4(1.0f);
+GLuint MatrixID = 0;
+
+struct Color {
+    float r;
+    float g;
+    float b;
 };
 
-FancyVector::FancyVector(vec2 v1, vec2 v2, vec2 v3) {
-    a = v1;
-    b = v2;
-    v = v3;
-}
+Color RED = Color{ 1.f, 0.f, 0.f };
+Color GREEN = Color{ 0.f, 1.f, 0.f };
+Color BLUE = Color{ 0.f, 0.f, 1.f };
+Color WHITE = Color{ 1.f, 1.f, 1.f };
+Color YELLOW = Color{ 1.f, 1.f, 0.f };
 
 const char* vertex_shader_code_resize_1000x = R"*(
+
 #version 330
 layout (location = 0) in vec3 pos;
+layout(location = 1) in vec3 vertexColor;
+
+out vec3 fragmentColor;
+uniform mat4 MVP; // transformation matrix
 void main()
 {
-	gl_Position = vec4(0.001*pos.x - 0.5f, 0.001*pos.y + 0.5f, 0.5*pos.z, 1.0);
+	gl_Position = MVP * vec4(0.001*pos.x - 0.5f, 0.001*pos.y + 0.5f, 0.5*pos.z, 1.0);
+    fragmentColor = vertexColor;
 }
 )*";
 
-const char* fragment_shader_code_white = R"*(
+const char* fragment_shader_code = R"*(
 #version 330
-out vec4 color;
+in vec3 fragmentColor;
+out vec3 color;
 void main()
 {
-	color = vec4(1.0, 1.0, 1.0, 1.0);
+	// color = vec3(1.f, 1.f, 1.f);
+    color = fragmentColor;
 }
 )*";
 
-const char* fragment_shader_code_red = R"*(
-#version 330
-out vec4 color;
-void main()
+void create_line(vec2 a, vec2 b, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, Color color)
 {
-	color = vec4(1.0, 0.0, 0.0, 1.0);
-}
-)*";
+    GLfloat colors[] = {
+        color.r, color.g, color.b,
+        color.r, color.g, color.b,
+        color.r, color.g, color.b,
+    };
 
-const char* fragment_shader_code_blue = R"*(
-#version 330
-out vec4 color;
-void main()
-{
-	color = vec4(0.0, 0.0, 1.0, 1.0);
-}
-)*";
+    // setup color
+    glGenBuffers(1, &colorbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
-const char* fragment_shader_code_yellow = R"*(
-#version 330
-out vec4 color;
-void main()
-{
-	color = vec4(1.0, 1.0, 0.0, 1.0);
-}
-)*";
-
-int array_size = 0;
-
-void create_line(vec2 a, vec2 b, GLuint &VBO, GLuint &VAO)
-{
     GLfloat vertices[] = {
         a.x, a.y, 0.0f,
         a.x, a.y, 0.0f,
         b.x, b.y, 0.0f,
     };
 
-    // setup line
+    // setup vertices
     glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
 }
 
-void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO)
+void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, Color color)
 {
-    GLfloat vertices[] = {
-        a.x, a.y, 0.0f,
-        b.x, b.y, 0.0f,
-        c.x, c.y, 0.0f
+    GLfloat colors[] = {
+        color.r, color.g, color.b,
+        color.r, color.g, color.b,
+        color.r, color.g, color.b,
     };
 
-    glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
+    // setup color
+    glGenBuffers(1, &colorbuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
-    glGenBuffers(1, &VBO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    array_size = sizeof(vertices);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-}
-
-void create_rectangle(vec2 a, vec2 b, vec2 c, vec2 d, GLuint& VBO, GLuint& VAO)
-{
     GLfloat vertices[] = {
         a.x, a.y, 0.0f,
         b.x, b.y, 0.0f,
-        d.x, d.y, 0.0f,
-        a.x, a.y, 0.0f,
         c.x, c.y, 0.0f,
-        d.x, d.y, 0.0f,
     };
 
-    glGenVertexArrays(1, &VAO);
+    // setup vertices
     glBindVertexArray(VAO);
-
-    glGenBuffers(1, &VBO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-    array_size = sizeof(vertices);
-
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
-    glEnableVertexAttribArray(0);
-
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glBindVertexArray(0);
-
 }
 
-void create_circle(float radius, float pos_x, float pos_y, GLuint& VBO, GLuint& VAO) {
+void draw_circle(float radius, float pos_x, float pos_y, GLuint* VBO_circle, GLuint* CBO_circle, GLuint* VAO_circle, Color color) {
     float x, y;
     vec2 center(pos_x * 10.f, pos_y * 10.f);
     for (double i = 0; i <= 360;) {
@@ -171,10 +133,18 @@ void create_circle(float radius, float pos_x, float pos_y, GLuint& VBO, GLuint& 
         y = radius * sin(i) + pos_y * 10.f;
         vec2 b(x, y);
         i = i + .5;
-        create_triangle(a, b, center, VBO, VAO);
-        glUseProgram(shader_white);
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 1 + array_size);
+        int j = (int)i;
+        create_triangle(a, b, center, VBO_circle[j], VAO_circle[j], CBO_circle[j], color);
+
+        glEnableVertexAttribArray(0);
+        glBindBuffer(GL_ARRAY_BUFFER, VBO_circle[j]);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        glEnableVertexAttribArray(1);
+        glBindBuffer(GL_ARRAY_BUFFER, CBO_circle[j]);
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+        glDrawArrays(GL_TRIANGLES, 0, 3);
     }
 }
 
@@ -237,10 +207,7 @@ void create_shader(GLuint &shader, const char *shader_code)
 
 void create_shaders()
 {
-    create_shader(shader_white, fragment_shader_code_white);
-    create_shader(shader_red, fragment_shader_code_red);
-    create_shader(shader_blue, fragment_shader_code_blue);
-    create_shader(shader_yellow, fragment_shader_code_yellow);
+    create_shader(shader, fragment_shader_code);
 }
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
@@ -256,7 +223,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 
-    // Create the window
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     GLFWwindow* mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Projet ELEC-H304", NULL, NULL);
     if (!mainWindow)
     {
@@ -277,7 +246,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         return 1;
     }
 
-    glViewport(0, 0, min(bufferWidth, bufferHeight), min(bufferWidth, bufferHeight));
+    glViewport(0, 0, bufferWidth, bufferHeight);
 
 
     IMGUI_CHECKVERSION();
@@ -314,38 +283,71 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         walls.push_back(temp_vector);
     }
 
-    unsigned int VBO_zones[342], VAO_zones[342]; // only for zones
+    unsigned int VBO_circle[361], VAO_circle[361], CBO_circle[361]; // only for zones
+    glGenVertexArrays(361, VAO_circle); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(361, VBO_circle);
+    glGenBuffers(361, CBO_circle);
+
+    unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342]; // only for zones
     glGenVertexArrays(342, VAO_zones); // we can generate multiple VAOs or buffers at the same time
     glGenBuffers(342, VBO_zones);
+    glGenBuffers(342, CBO_zones);
     // generate local zones
 
     for (int j = 0; j <= 140; j++) {
-        create_line(vec2(0.0, -j * 0.5 * 10.f), vec2(100.0 * 10.f, -j * 0.5 * 10.f), VBO_zones[j], VAO_zones[j]);
+        create_line(vec2(0.0, -j * 0.5 * 10.f), vec2(100.0 * 10.f, -j * 0.5 * 10.f), VBO_zones[j], VAO_zones[j], CBO_zones[j], YELLOW);
     }
     for (int i = 0; i <= 200; i++) {
-        create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i]);
+        create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
     }
 
     float pos_x = 20.f;
     float pos_y = -10.f;
 
-    int material = 0;
+    float buffer_pos_x = 0;
+    float buffer_pos_y = 0;
 
+    int material = 0;
+    bool render_again = true; // temporary fix
 
     // lines
-    const int line_count = 50;
-    unsigned int VBO_lines[line_count], VAO_lines[line_count];
+    const int line_count = 100;
+    unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
+    glGenVertexArrays(line_count, VAO_lines); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(line_count, VBO_lines);
+    glGenBuffers(line_count, CBO_lines);
+
+    unsigned int VBO_lines_r[line_count], VAO_lines_r[line_count], CBO_lines_r[line_count];
+    glGenVertexArrays(line_count, VAO_lines_r); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(line_count, VBO_lines_r);
+    glGenBuffers(line_count, CBO_lines_r);
+
+    unsigned int VBO_lines_rr[line_count], VAO_lines_rr[line_count], CBO_lines_rr[line_count];
+    glGenVertexArrays(line_count, VAO_lines_rr); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(line_count, VBO_lines_rr);
+    glGenBuffers(line_count, CBO_lines_rr);
 
     // init walls
     FancyVector wall;
-    unsigned int VBO_walls[100], VAO_walls[100]; // only for walls
+    unsigned int VBO_walls[100], VAO_walls[100], CBO_walls[100]; // only for walls
     glGenVertexArrays(100, VAO_walls); // we can generate multiple VAOs or buffers at the same time
     glGenBuffers(100, VBO_walls);
+    glGenBuffers(100, CBO_walls);
     for (int i = 0; i < walls.size(); i++) {
-        create_line(walls[i].a, walls[i].b, VBO_walls[i], VAO_walls[i]);
+        material = data[i]["material_id"];
+        create_line(walls[i].a, walls[i].b, VBO_walls[i], VAO_walls[i], CBO_walls[i], material == 1 ? BLUE : material == 2 ? RED : WHITE);
     }
 
+    // Get a handle for our "MVP" uniform
+    MatrixID = glGetUniformLocation(shader, "MVP");
 
+    float zoom_factor = 2.f;
+    float cam_x = 0.4f;
+    float cam_y = 0.f;
+    float cam_z = 1.4f;
+
+    bool draw_zone;
+    
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
         glfwPollEvents();
@@ -353,8 +355,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
-        glClearColor(0.07f, 0.07f, 0.07f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.2f, 1.f);
         glClear(GL_COLOR_BUFFER_BIT);
+        glUseProgram(shader);
+        glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
         ImGui::NewFrame();
 
@@ -363,6 +367,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::Begin("Settings");
         ImGui::DragFloat("Value pos_x", &pos_x);
         ImGui::DragFloat("Value pos_y", &pos_y);
+        ImGui::DragFloat("Cam x", &cam_x, 0.01f);
+        ImGui::DragFloat("Cam y", &cam_y, 0.01f);
+        ImGui::DragFloat("Cam z", &cam_z, 0.01f);
+        ImGui::Checkbox("Draw zones", &draw_zone);
         ImGui::End();
 
         ImGui::Begin("Circle color");
@@ -379,19 +387,48 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
         // OpenGL code goes here
 
-        //drawing local zones
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glUseProgram(shader_yellow);
-        for (int i = 0; i < 342; i++) {
-            // draw line
-            glBindVertexArray(VAO_zones[i]);
-            glDrawArrays(GL_TRIANGLES, 0, 3);
+        if (buffer_pos_x != pos_x || buffer_pos_y != pos_y) {
+            render_again = true;
+            buffer_pos_x = pos_x; buffer_pos_y = pos_y;
         }
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+        // glm::mat4 Projection = glm::ortho(-1.0f / zoom_factor, 1.0f / zoom_factor, -1.0f / zoom_factor, 1.0f / zoom_factor, -1000.0f, 1000.0f); // In world coordinates
+
+        glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float) bufferWidth / (float) bufferHeight, 0.01f, 1000.0f);
+
+        // Camera matrix
+        glm::mat4 View = glm::lookAt(
+            glm::vec3(cam_x, cam_y, cam_z), // Camera is at
+            glm::vec3(cam_x, cam_y, cam_z - 1.), // and looks at the origin
+            glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+        );
+        // Model matrix : an identity matrix (model will be at the origin)
+        glm::mat4 Model = glm::mat4(1.0f);
+        // Our ModelViewProjection : multiplication of our 3 matrices
+        MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+        if (draw_zone) {
+            //drawing local zones
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            for (int i = 0; i < 342; i++) {
+                // draw line
+
+                glEnableVertexAttribArray(0);
+                glBindBuffer(GL_ARRAY_BUFFER, VBO_zones[i]);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+                glEnableVertexAttribArray(1);
+                glBindBuffer(GL_ARRAY_BUFFER, CBO_zones[i]);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
 
         // rays
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glUseProgram(shader_white);
+        
         vec2 center(pos_x * 10.f, pos_y * 10.f);
         for (int i = 0; i < line_count; i++) {
             float dx = cos(i * 2.f / line_count * 3.1415f); // on pourra opti ça
@@ -400,38 +437,65 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
             float t = 0;
             float s = 0;
-            // calculating intersection
-            vec2 best_intersection(-1000, -1000);
-            double best_distance = 1000000;
+            bool found = true;
 
-            for (int w = 0; w < walls.size(); w ++) {
-                wall = walls[w];
-                if (wall.v.y == 0) {
-                    t = (wall.a.y - center.y) / direction.y;
-                    s = (center.x + direction.x * t - wall.a.x) / wall.v.x;
-                }
-                else {
-                    t = wall.v.y / (direction.x * wall.v.y - wall.v.x * direction.y) * (wall.a.x - center.x + wall.v.x * (center.y - wall.a.y) / wall.v.y);
-                    s = (center.y + direction.y * t - wall.a.y) / wall.v.y;
-                }
+            if (render_again) { // marche pas si on sort de la maison
+                // calculating intersection
+                vec2 best_intersection = getIntersection(direction, center, walls, wall, found);
 
-                if (t <= 0 || t > 100000 || s < 0 || s > 1) continue;
+                if (!found) continue;
 
-                vec2 intersection = vec2(center.x + t * direction.x, center.y + t * direction.y);
-                double distance = length(intersection - center);
+                create_line(center, best_intersection, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
 
-                if (distance < best_distance) {
-                    best_distance = distance;
-                    best_intersection = intersection;
-                }
+                // reflections
+                
+                vec2 reflection_vector = direction - 2.f * dot(direction, normalize(vec2(wall.v.y, -wall.v.x))) * normalize(vec2(wall.v.y, -wall.v.x));
+
+                vec2 best_intersection_r = getIntersection(reflection_vector, best_intersection, walls, wall, found);
+
+                if (!found) continue;
+
+                create_line(best_intersection, best_intersection_r, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], YELLOW);
+
+                vec2 reflection_vector_2 = reflection_vector - 2.f * dot(reflection_vector, normalize(vec2(wall.v.y, -wall.v.x))) * normalize(vec2(wall.v.y, -wall.v.x));
+
+                vec2 best_intersection_r2 = getIntersection(reflection_vector_2, best_intersection_r, walls, wall, found);
+
+                if (!found) continue;
+
+                create_line(best_intersection_r, best_intersection_r2, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], RED);
             }
-            if (best_intersection.x == -1000 && best_intersection.y == -1000) continue;
 
-            create_line(center, best_intersection, VBO_lines[i], VAO_lines[i]);
-            
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_lines[i]);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-            glBindVertexArray(VAO_lines[i]);
+            glEnableVertexAttribArray(1);
+            glBindBuffer(GL_ARRAY_BUFFER, CBO_lines[i]);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
             glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_lines_r[i]);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glEnableVertexAttribArray(1);
+            glBindBuffer(GL_ARRAY_BUFFER, CBO_lines_r[i]);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            /*
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_lines_rr[i]);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glEnableVertexAttribArray(1);
+            glBindBuffer(GL_ARRAY_BUFFER, CBO_lines_rr[i]);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glDrawArrays(GL_TRIANGLES, 0, 3); */
         }
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
@@ -439,23 +503,53 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // drawing walls
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         for (int i = 0; i < walls.size(); i++) {
-            // draw line
-            material = data[i]["material_id"];
-            glUseProgram(material == 1 ? shader_blue : material == 2 ? shader_red : shader_white);
-            glBindVertexArray(VAO_walls[i]);
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_walls[i]);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glEnableVertexAttribArray(1);
+            glBindBuffer(GL_ARRAY_BUFFER, CBO_walls[i]);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
         // draw circle
-        // create_circle(15.f, pos_x, pos_y, VBO, VAO);
+        float radius = 15.f;
+        //draw_circle(15.f, pos_x, pos_y, VBO_circle, CBO_circle, VAO_circle, BLUE);
 
-        // draw rays around circle
-        
+        if (render_again) {
+            float x, y;
+            // vec2 center(pos_x * 10.f, pos_y * 10.f);
+            for (double i = 0; i <= 360;) {
+                x = radius * cos(i) + pos_x * 10.f;
+                y = radius * sin(i) + pos_y * 10.f;
+                vec2 a(x, y);
+                i = i + .5;
+                x = radius * cos(i) + pos_x * 10.f;
+                y = radius * sin(i) + pos_y * 10.f;
+                vec2 b(x, y);
+                i = i + .5;
+                int j = (int)i;
+                // create_triangle(a, b, center, VBO_circle[j], VAO_circle[j], CBO_circle[j], BLUE);
+                create_line(a, b, VBO_circle[j], VAO_circle[j], CBO_circle[j], BLUE);
+
+                glEnableVertexAttribArray(0);
+                glBindBuffer(GL_ARRAY_BUFFER, VBO_circle[j]);
+                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+                glEnableVertexAttribArray(1);
+                glBindBuffer(GL_ARRAY_BUFFER, CBO_circle[j]);
+                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+                glDrawArrays(GL_TRIANGLES, 0, 3);
+            }
+        }
 
         glUseProgram(0);
-
+        render_again = false;
 
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)

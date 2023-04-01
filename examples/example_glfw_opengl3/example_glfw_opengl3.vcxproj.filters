@@ -43,6 +43,12 @@
     <ClCompile Include="main.cpp">
       <Filter>sources\src</Filter>
     </ClCompile>
+    <ClCompile Include="vector_math.cpp">
+      <Filter>sources\src</Filter>
+    </ClCompile>
+    <ClCompile Include="fancy_vector.cpp">
+      <Filter>sources\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -62,6 +68,12 @@
     </ClInclude>
     <ClInclude Include="..\..\backends\imgui_impl_opengl3.h">
       <Filter>sources\imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="vector_math.h">
+      <Filter>sources\src</Filter>
+    </ClInclude>
+    <ClInclude Include="fancy_vector.h">
+      <Filter>sources\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
