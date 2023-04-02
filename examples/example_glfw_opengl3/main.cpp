@@ -80,7 +80,6 @@ void create_line(vec2 a, vec2 b, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, 
     };
 
     // setup color
-    glGenBuffers(1, &colorbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
@@ -105,7 +104,6 @@ void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO, GLuint& c
     };
 
     // setup color
-    glGenBuffers(1, &colorbuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
 
@@ -283,10 +281,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         walls.push_back(temp_vector);
     }
 
-    unsigned int VBO_circle[361], VAO_circle[361], CBO_circle[361]; // only for zones
-    glGenVertexArrays(361, VAO_circle); // we can generate multiple VAOs or buffers at the same time
-    glGenBuffers(361, VBO_circle);
-    glGenBuffers(361, CBO_circle);
+    unsigned int VBO_circle[721], VAO_circle[721], CBO_circle[721]; // only for zones
+    glGenVertexArrays(721, VAO_circle); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(721, VBO_circle);
+    glGenBuffers(721, CBO_circle);
 
     unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342]; // only for zones
     glGenVertexArrays(342, VAO_zones); // we can generate multiple VAOs or buffers at the same time
@@ -311,7 +309,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     bool render_again = true; // temporary fix
 
     // lines
-    const int line_count = 100;
+    const int line_count = 10;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
     glGenVertexArrays(line_count, VAO_lines); // we can generate multiple VAOs or buffers at the same time
     glGenBuffers(line_count, VBO_lines);
@@ -346,8 +344,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float cam_y = 0.f;
     float cam_z = 1.4f;
 
-    bool draw_zone;
-    
+    bool draw_zone = false;
+
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
         glfwPollEvents();
@@ -439,12 +437,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             float s = 0;
             bool found = true;
 
-            if (render_again) { // marche pas si on sort de la maison
+            if (render_again) {
                 // calculating intersection
                 vec2 best_intersection = getIntersection(direction, center, walls, wall, found);
 
-                if (!found) continue;
-
+                if (!found){ // obligé psq on continue de render les lignes, donc il faut override
+                    create_line(center, center, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
+                    create_line(center, center, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
+                    create_line(center, center, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
+                    continue;
+                }
                 create_line(center, best_intersection, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
 
                 // reflections
@@ -453,7 +455,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
                 vec2 best_intersection_r = getIntersection(reflection_vector, best_intersection, walls, wall, found);
 
-                if (!found) continue;
+                if (!found) {
+                    create_line(center, center, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
+                    create_line(center, center, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
+                    continue;
+                }
 
                 create_line(best_intersection, best_intersection_r, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], YELLOW);
 
@@ -461,7 +467,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
                 vec2 best_intersection_r2 = getIntersection(reflection_vector_2, best_intersection_r, walls, wall, found);
 
-                if (!found) continue;
+                if (!found) {
+                    create_line(center, center, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
+                    continue;
+                }
 
                 create_line(best_intersection_r, best_intersection_r2, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], RED);
             }
@@ -486,7 +495,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
             glDrawArrays(GL_TRIANGLES, 0, 3);
 
-            /*
             glEnableVertexAttribArray(0);
             glBindBuffer(GL_ARRAY_BUFFER, VBO_lines_rr[i]);
             glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
@@ -495,8 +503,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             glBindBuffer(GL_ARRAY_BUFFER, CBO_lines_rr[i]);
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
 
-            glDrawArrays(GL_TRIANGLES, 0, 3); */
+            glDrawArrays(GL_TRIANGLES, 0, 3);
         }
+
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 
@@ -520,32 +529,33 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         float radius = 15.f;
         //draw_circle(15.f, pos_x, pos_y, VBO_circle, CBO_circle, VAO_circle, BLUE);
 
-        if (render_again) {
+        if (render_again) { // pas la méthode la plus opti pour dessiner un cercle mais soit (plus de triangles au centre qu'aux extrémités
             float x, y;
             // vec2 center(pos_x * 10.f, pos_y * 10.f);
             for (double i = 0; i <= 360;) {
-                x = radius * cos(i) + pos_x * 10.f;
-                y = radius * sin(i) + pos_y * 10.f;
+                x = radius * cos(i * 3.141592f / 180.f) + pos_x * 10.f;
+                y = radius * sin(i * 3.141592f / 180.f) + pos_y * 10.f;
                 vec2 a(x, y);
-                i = i + .5;
-                x = radius * cos(i) + pos_x * 10.f;
-                y = radius * sin(i) + pos_y * 10.f;
+                i = i + 0.5;
+                x = radius * cos(i * 3.141592f / 180.f) + pos_x * 10.f;
+                y = radius * sin(i * 3.141592f / 180.f) + pos_y * 10.f;
                 vec2 b(x, y);
-                i = i + .5;
-                int j = (int)i;
-                // create_triangle(a, b, center, VBO_circle[j], VAO_circle[j], CBO_circle[j], BLUE);
-                create_line(a, b, VBO_circle[j], VAO_circle[j], CBO_circle[j], BLUE);
 
-                glEnableVertexAttribArray(0);
-                glBindBuffer(GL_ARRAY_BUFFER, VBO_circle[j]);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-                glEnableVertexAttribArray(1);
-                glBindBuffer(GL_ARRAY_BUFFER, CBO_circle[j]);
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-                glDrawArrays(GL_TRIANGLES, 0, 3);
+                int j = (int)2 * (i-0.5);
+                create_triangle(a, center, b, VBO_circle[j], VAO_circle[j], CBO_circle[j], BLUE);
             }
+        }
+
+        for (int i = 0; i <= 720; i++) {
+            glEnableVertexAttribArray(0);
+            glBindBuffer(GL_ARRAY_BUFFER, VBO_circle[i]);
+            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glEnableVertexAttribArray(1);
+            glBindBuffer(GL_ARRAY_BUFFER, CBO_circle[i]);
+            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+            glDrawArrays(GL_TRIANGLES, 0, 3);
         }
 
         glUseProgram(0);
