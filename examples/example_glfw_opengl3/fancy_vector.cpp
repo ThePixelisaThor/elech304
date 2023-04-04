@@ -3,8 +3,9 @@
 FancyVector::FancyVector() {
 }
 
-FancyVector::FancyVector(glm::vec2 v1, glm::vec2 v2, glm::vec2 v3) {
+FancyVector::FancyVector(glm::vec2 v1, glm::vec2 v2) {
     a = v1;
     b = v2;
-    v = v3;
+    u = glm::normalize(v2 - v1);
+    n = glm::vec2(u.y, -u.x);
 }

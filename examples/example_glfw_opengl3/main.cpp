@@ -18,6 +18,9 @@
 #include <fstream>
 #include "fancy_vector.h"
 #include "vector_math.h"
+#include "render_utils.h"
+#include "shader_utils.h"
+#include "color.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -33,33 +36,6 @@ GLuint shader;
 glm::mat4 MVP = glm::mat4(1.0f);
 GLuint MatrixID = 0;
 
-struct Color {
-    float r;
-    float g;
-    float b;
-};
-
-Color RED = Color{ 1.f, 0.f, 0.f };
-Color GREEN = Color{ 0.f, 1.f, 0.f };
-Color BLUE = Color{ 0.f, 0.f, 1.f };
-Color WHITE = Color{ 1.f, 1.f, 1.f };
-Color YELLOW = Color{ 1.f, 1.f, 0.f };
-
-const char* vertex_shader_code_resize_1000x = R"*(
-
-#version 330
-layout (location = 0) in vec3 pos;
-layout(location = 1) in vec3 vertexColor;
-
-out vec3 fragmentColor;
-uniform mat4 MVP; // transformation matrix
-void main()
-{
-	gl_Position = MVP * vec4(0.001*pos.x - 0.5f, 0.001*pos.y + 0.5f, 0.5*pos.z, 1.0);
-    fragmentColor = vertexColor;
-}
-)*";
-
 const char* fragment_shader_code = R"*(
 #version 330
 in vec3 fragmentColor;
@@ -70,111 +46,6 @@ void main()
     color = fragmentColor;
 }
 )*";
-
-void create_line(vec2 a, vec2 b, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, Color color)
-{
-    GLfloat colors[] = {
-        color.r, color.g, color.b,
-        color.r, color.g, color.b,
-        color.r, color.g, color.b,
-    };
-
-    // setup color
-    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
-    GLfloat vertices[] = {
-        a.x, a.y, 0.0f,
-        a.x, a.y, 0.0f,
-        b.x, b.y, 0.0f,
-    };
-
-    // setup vertices
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-}
-
-void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, Color color)
-{
-    GLfloat colors[] = {
-        color.r, color.g, color.b,
-        color.r, color.g, color.b,
-        color.r, color.g, color.b,
-    };
-
-    // setup color
-    glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
-    GLfloat vertices[] = {
-        a.x, a.y, 0.0f,
-        b.x, b.y, 0.0f,
-        c.x, c.y, 0.0f,
-    };
-
-    // setup vertices
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-}
-
-void add_shader(GLuint program, const char* shader_code, GLenum type)
-{
-    GLuint current_shader = glCreateShader(type);
-
-    const GLchar* code[1];
-    code[0] = shader_code;
-
-    GLint code_length[1];
-    code_length[0] = strlen(shader_code);
-
-    glShaderSource(current_shader, 1, code, code_length);
-    glCompileShader(current_shader);
-
-    GLint result = 0;
-    GLchar log[1024] = { 0 };
-
-    glGetShaderiv(current_shader, GL_COMPILE_STATUS, &result);
-    if (!result) {
-        glGetShaderInfoLog(current_shader, sizeof(log), NULL, log);
-        std::cout << "Error compiling " << type << " shader: " << log << "\n";
-        return;
-    }
-
-    glAttachShader(program, current_shader);
-}
-
-void create_shader(GLuint &shader, const char *shader_code)
-{
-    shader = glCreateProgram();
-    if (!shader) {
-        std::cout << "Error creating shader program!\n";
-        exit(1);
-    }
-
-    add_shader(shader, vertex_shader_code_resize_1000x, GL_VERTEX_SHADER);
-    add_shader(shader, shader_code, GL_FRAGMENT_SHADER);
-
-    GLint result = 0;
-    GLchar log[1024] = { 0 };
-
-    glLinkProgram(shader);
-    glGetProgramiv(shader, GL_LINK_STATUS, &result);
-    if (!result) {
-        glGetProgramInfoLog(shader, sizeof(log), NULL, log);
-        std::cout << "Error linking program:\n" << log << '\n';
-        return;
-    }
-
-    glValidateProgram(shader);
-    glGetProgramiv(shader, GL_VALIDATE_STATUS, &result);
-    if (!result) {
-        glGetProgramInfoLog(shader, sizeof(log), NULL, log);
-        std::cout << "Error validating program:\n" << log << '\n';
-        return;
-    }
-}
 
 void create_shaders()
 {
@@ -250,7 +121,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         vec2 a(data[i]["point_ax"] * 10.f, data[i]["point_ay"] * 10.f);
         vec2 b(data[i]["point_bx"] * 10.f, data[i]["point_by"] * 10.f);
 
-        FancyVector temp_vector(a, b, b-a);
+        FancyVector temp_vector(a, b);
         walls.push_back(temp_vector);
     }
 
@@ -282,7 +153,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     bool render_again = true; // temporary fix
 
     // lines
-    const int line_count = 5000;
+    const int line_count = 50;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
     glGenVertexArrays(line_count, VAO_lines); // we can generate multiple VAOs or buffers at the same time
     glGenBuffers(line_count, VBO_lines);
@@ -434,7 +305,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
                 ray_count++;
                 // reflections
                 
-                vec2 reflection_vector = direction - 2.f * dot(direction, normalize(vec2(wall.v.y, -wall.v.x))) * normalize(vec2(wall.v.y, -wall.v.x));
+                vec2 reflection_vector = direction - 2.f * dot(direction, normalize(vec2(wall.u.y, -wall.u.x))) * normalize(vec2(wall.u.y, -wall.u.x));
 
                 vec2 best_intersection_r = getIntersection(reflection_vector, best_intersection, walls, wall, found);
 
@@ -446,7 +317,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
                 create_line(best_intersection, best_intersection_r, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], YELLOW);
                 ray_count++;
-                vec2 reflection_vector_2 = reflection_vector - 2.f * dot(reflection_vector, normalize(vec2(wall.v.y, -wall.v.x))) * normalize(vec2(wall.v.y, -wall.v.x));
+                vec2 reflection_vector_2 = reflection_vector - 2.f * dot(reflection_vector, normalize(vec2(wall.u.y, -wall.u.x))) * normalize(vec2(wall.u.y, -wall.u.x));
 
                 vec2 best_intersection_r2 = getIntersection(reflection_vector_2, best_intersection_r, walls, wall, found);
 

@@ -49,6 +49,15 @@
     <ClCompile Include="fancy_vector.cpp">
       <Filter>sources\src</Filter>
     </ClCompile>
+    <ClCompile Include="render_utils.cpp">
+      <Filter>sources\src</Filter>
+    </ClCompile>
+    <ClCompile Include="shader_utils.cpp">
+      <Filter>sources\src</Filter>
+    </ClCompile>
+    <ClCompile Include="raytracing.cpp">
+      <Filter>sources\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -73,6 +82,18 @@
       <Filter>sources\src</Filter>
     </ClInclude>
     <ClInclude Include="fancy_vector.h">
+      <Filter>sources\src</Filter>
+    </ClInclude>
+    <ClInclude Include="render_utils.h">
+      <Filter>sources\src</Filter>
+    </ClInclude>
+    <ClInclude Include="color.h">
+      <Filter>sources\src</Filter>
+    </ClInclude>
+    <ClInclude Include="shader_utils.h">
+      <Filter>sources\src</Filter>
+    </ClInclude>
+    <ClInclude Include="raytracing.h">
       <Filter>sources\src</Filter>
     </ClInclude>
   </ItemGroup>

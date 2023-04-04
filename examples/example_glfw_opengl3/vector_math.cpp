@@ -1,6 +1,7 @@
 #include "glm/glm.hpp"
 #include <vector>
 #include "fancy_vector.h"
+#include "raytracing.h"
 
 using namespace glm;
 
@@ -15,13 +16,13 @@ vec2 getIntersection(vec2 direction, vec2 center, std::vector<FancyVector> walls
 
     for (int w = 0; w < walls.size(); w++) {
         wall = walls[w];
-        if (wall.v.y == 0) {
+        if (wall.u.y == 0) {
             t = (wall.a.y - center.y) / direction.y;
-            s = (center.x + direction.x * t - wall.a.x) / wall.v.x;
+            s = (center.x + direction.x * t - wall.a.x) / wall.u.x;
         }
         else {
-            t = wall.v.y / (direction.x * wall.v.y - wall.v.x * direction.y) * (wall.a.x - center.x + wall.v.x * (center.y - wall.a.y) / wall.v.y);
-            s = (center.y + direction.y * t - wall.a.y) / wall.v.y;
+            t = wall.u.y / (direction.x * wall.u.y - wall.u.x * direction.y) * (wall.a.x - center.x + wall.u.x * (center.y - wall.a.y) / wall.u.y);
+            s = (center.y + direction.y * t - wall.a.y) / wall.u.y;
         }
 
         if (t <= 0.1 || t > 100000 || s < 0 || s > 1) continue;
