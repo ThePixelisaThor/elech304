@@ -14,6 +14,17 @@ void main()
 }
 )*";
 
+const char* fragment_shader_code = R"*(
+#version 330
+in vec3 fragmentColor;
+out vec3 color;
+void main()
+{
+	// color = vec3(1.f, 1.f, 1.f);
+    color = fragmentColor;
+}
+)*";
+
 void add_shader(GLuint program, const char* shader_code, GLenum type)
 {
     GLuint current_shader = glCreateShader(type);
@@ -68,4 +79,8 @@ void create_shader(GLuint& shader, const char* shader_code)
         std::cout << "Error validating program:\n" << log << '\n';
         return;
     }
+}
+
+void create_shader(GLuint& shader) {
+    create_shader(shader, fragment_shader_code);
 }

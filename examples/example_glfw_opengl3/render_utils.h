@@ -24,3 +24,6 @@
 
 void create_line(vec2 a, vec2 b, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, Color color);
 void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO, GLuint& colorbuffer, Color color);
+
+void draw_arrays(unsigned int VBOs[], unsigned int CBOs[], int length);
+void draw_array(unsigned int VBOs, unsigned int CBOs);

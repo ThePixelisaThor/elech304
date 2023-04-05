@@ -36,21 +36,6 @@ GLuint shader;
 glm::mat4 MVP = glm::mat4(1.0f);
 GLuint MatrixID = 0;
 
-const char* fragment_shader_code = R"*(
-#version 330
-in vec3 fragmentColor;
-out vec3 color;
-void main()
-{
-	// color = vec3(1.f, 1.f, 1.f);
-    color = fragmentColor;
-}
-)*";
-
-void create_shaders()
-{
-    create_shader(shader, fragment_shader_code);
-}
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
@@ -108,7 +93,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     ImGui_ImplGlfw_InitForOpenGL(mainWindow, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    create_shaders();
+    create_shader(shader);
 
     // loading json
     std::ifstream f("plan.json");
@@ -259,24 +244,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         if (draw_zone) {
             //drawing local zones
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            for (int i = 0; i < 342; i++) {
-                // draw line
-
-                glEnableVertexAttribArray(0);
-                glBindBuffer(GL_ARRAY_BUFFER, VBO_zones[i]);
-                glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-                glEnableVertexAttribArray(1);
-                glBindBuffer(GL_ARRAY_BUFFER, CBO_zones[i]);
-                glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-                glDrawArrays(GL_TRIANGLES, 0, 3);
-            }
+            draw_arrays(VBO_zones, CBO_zones, 342);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
         // rays
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         
         vec2 center(pos_x * 10.f, pos_y * 10.f);
         for (int i = 0; i < line_count; i++) {
@@ -330,55 +302,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             }
         }
 
-        for (int i = 0; i < line_count; i++) {
-
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO_lines[i]);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glEnableVertexAttribArray(1);
-            glBindBuffer(GL_ARRAY_BUFFER, CBO_lines[i]);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO_lines_r[i]);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glEnableVertexAttribArray(1);
-            glBindBuffer(GL_ARRAY_BUFFER, CBO_lines_r[i]);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO_lines_rr[i]);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glEnableVertexAttribArray(1);
-            glBindBuffer(GL_ARRAY_BUFFER, CBO_lines_rr[i]);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
-
+        // drawing rays
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        draw_arrays(VBO_lines, CBO_lines, line_count);
+        draw_arrays(VBO_lines_r, CBO_lines_r, line_count);
+        draw_arrays(VBO_lines_rr, CBO_lines_rr, line_count);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 
         // drawing walls
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        for (int i = 0; i < walls.size(); i++) {
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO_walls[i]);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glEnableVertexAttribArray(1);
-            glBindBuffer(GL_ARRAY_BUFFER, CBO_walls[i]);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
+        draw_arrays(VBO_walls, CBO_walls, walls.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // draw circle
@@ -402,17 +335,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             }
         }
 
-        for (int i = 0; i <= 720; i++) {
-            glEnableVertexAttribArray(0);
-            glBindBuffer(GL_ARRAY_BUFFER, VBO_circle[i]);
-            glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+        draw_arrays(VBO_circle, CBO_circle, 721);
 
-            glEnableVertexAttribArray(1);
-            glBindBuffer(GL_ARRAY_BUFFER, CBO_circle[i]);
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
-
-            glDrawArrays(GL_TRIANGLES, 0, 3);
-        }
 
         glUseProgram(0);
         render_again = false;
