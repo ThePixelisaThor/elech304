@@ -314,9 +314,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         draw_arrays(VBO_walls, CBO_walls, walls.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
-        // draw circle
+        // creating circle
         float radius = 15.f;
-        //draw_circle(15.f, pos_x, pos_y, VBO_circle, CBO_circle, VAO_circle, BLUE);
 
         if (render_again) { // pas la méthode la plus opti pour dessiner un cercle mais soit (plus de triangles au centre qu'aux extrémités
             float x, y;
@@ -335,6 +334,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             }
         }
 
+        // drawing circle
         draw_arrays(VBO_circle, CBO_circle, 721);
 
 
