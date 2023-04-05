@@ -144,7 +144,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     }
 
     float pos_x = 56.f;
-    float pos_y = -10.f;
+    float pos_y = -56.f;
 
     float buffer_pos_x = 0;
     float buffer_pos_y = 0;
@@ -155,17 +155,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     // lines
     const int line_count = 50;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
-    glGenVertexArrays(line_count, VAO_lines); // we can generate multiple VAOs or buffers at the same time
+    glGenVertexArrays(line_count, VAO_lines);
     glGenBuffers(line_count, VBO_lines);
     glGenBuffers(line_count, CBO_lines);
 
     unsigned int VBO_lines_r[line_count], VAO_lines_r[line_count], CBO_lines_r[line_count];
-    glGenVertexArrays(line_count, VAO_lines_r); // we can generate multiple VAOs or buffers at the same time
+    glGenVertexArrays(line_count, VAO_lines_r);
     glGenBuffers(line_count, VBO_lines_r);
     glGenBuffers(line_count, CBO_lines_r);
 
     unsigned int VBO_lines_rr[line_count], VAO_lines_rr[line_count], CBO_lines_rr[line_count];
-    glGenVertexArrays(line_count, VAO_lines_rr); // we can generate multiple VAOs or buffers at the same time
+    glGenVertexArrays(line_count, VAO_lines_rr);
     glGenBuffers(line_count, VBO_lines_rr);
     glGenBuffers(line_count, CBO_lines_rr);
 
@@ -243,8 +243,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             ray_count = 0;
         }
 
-        // glm::mat4 Projection = glm::ortho(-1.0f / zoom_factor, 1.0f / zoom_factor, -1.0f / zoom_factor, 1.0f / zoom_factor, -1000.0f, 1000.0f); // In world coordinates
-
         glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float) bufferWidth / (float) bufferHeight, 0.01f, 1000.0f);
 
         // Camera matrix
@@ -294,6 +292,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             if (render_again) {
                 // calculating intersection
                 vec2 best_intersection = getIntersection(direction, center, walls, wall, found);
+
                 if (!found){ // obligé psq on continue de render les lignes, donc il faut override
                     create_line(center, center, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
                     create_line(center, center, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
@@ -329,6 +328,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
                 create_line(best_intersection_r, best_intersection_r2, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], RED);
                 ray_count++;
             }
+        }
+
+        for (int i = 0; i < line_count; i++) {
 
             glEnableVertexAttribArray(0);
             glBindBuffer(GL_ARRAY_BUFFER, VBO_lines[i]);
@@ -378,7 +380,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             glDrawArrays(GL_TRIANGLES, 0, 3);
         }
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
 
         // draw circle
         float radius = 15.f;
