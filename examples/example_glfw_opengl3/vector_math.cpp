@@ -25,7 +25,7 @@ vec2 getIntersection(vec2 direction, vec2 center, std::vector<FancyVector> walls
             s = (center.y + direction.y * t - wall.a.y) / wall.u.y;
         }
 
-        if (t <= 0.1 || t > 100000 || s < 0 || s > 1) continue;
+        if (t <= 0.1 || t > 100000 || s < 0.01 || s > 0.99) continue;
 
         vec2 intersection = vec2(center.x + t * direction.x, center.y + t * direction.y);
         distance = length(intersection - center);

@@ -111,14 +111,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     }
 
     unsigned int VBO_circle[721], VAO_circle[721], CBO_circle[721]; // only for zones
-    glGenVertexArrays(721, VAO_circle); // we can generate multiple VAOs or buffers at the same time
-    glGenBuffers(721, VBO_circle);
-    glGenBuffers(721, CBO_circle);
+    create_arrays(VBO_circle, VAO_circle, CBO_circle, 721);
 
     unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342]; // only for zones
-    glGenVertexArrays(342, VAO_zones); // we can generate multiple VAOs or buffers at the same time
-    glGenBuffers(342, VBO_zones);
-    glGenBuffers(342, CBO_zones);
+    create_arrays(VBO_zones, VAO_zones, CBO_zones, 342);
+
     // generate local zones
 
     for (int j = 0; j <= 140; j++) {
@@ -128,8 +125,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
     }
 
-    float pos_x = 56.f;
-    float pos_y = -56.f;
+    float pos_x = 63.f;
+    float pos_y = -26.f;
 
     float buffer_pos_x = 0;
     float buffer_pos_y = 0;
@@ -140,26 +137,19 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     // lines
     const int line_count = 50;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
-    glGenVertexArrays(line_count, VAO_lines);
-    glGenBuffers(line_count, VBO_lines);
-    glGenBuffers(line_count, CBO_lines);
+    create_arrays(VBO_lines, VAO_lines, CBO_lines, line_count);
 
     unsigned int VBO_lines_r[line_count], VAO_lines_r[line_count], CBO_lines_r[line_count];
-    glGenVertexArrays(line_count, VAO_lines_r);
-    glGenBuffers(line_count, VBO_lines_r);
-    glGenBuffers(line_count, CBO_lines_r);
+    create_arrays(VBO_lines_r, VAO_lines_r, CBO_lines_r, line_count);
 
     unsigned int VBO_lines_rr[line_count], VAO_lines_rr[line_count], CBO_lines_rr[line_count];
-    glGenVertexArrays(line_count, VAO_lines_rr);
-    glGenBuffers(line_count, VBO_lines_rr);
-    glGenBuffers(line_count, CBO_lines_rr);
+    create_arrays(VBO_lines_rr, VAO_lines_rr, CBO_lines_rr, line_count);
 
     // init walls
     FancyVector wall;
     unsigned int VBO_walls[100], VAO_walls[100], CBO_walls[100]; // only for walls
-    glGenVertexArrays(100, VAO_walls); // we can generate multiple VAOs or buffers at the same time
-    glGenBuffers(100, VBO_walls);
-    glGenBuffers(100, CBO_walls);
+    create_arrays(VBO_walls, VAO_walls, CBO_walls, 100);
+
     for (int i = 0; i < walls.size(); i++) {
         material = data[i]["material_id"];
         create_line(walls[i].a, walls[i].b, VBO_walls[i], VAO_walls[i], CBO_walls[i], material == 1 ? BLUE : material == 2 ? RED : WHITE);

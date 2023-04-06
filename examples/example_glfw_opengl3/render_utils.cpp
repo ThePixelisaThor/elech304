@@ -63,3 +63,9 @@ void draw_array(unsigned int VBO, unsigned int CBO) {
 
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
+
+void create_arrays(unsigned int VBOs[], unsigned int VAOs[], unsigned int CBOs[], int length) {
+    glGenVertexArrays(length, VAOs); // we can generate multiple VAOs or buffers at the same time
+    glGenBuffers(length, VBOs);
+    glGenBuffers(length, CBOs);
+}

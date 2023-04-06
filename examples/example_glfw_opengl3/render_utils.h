@@ -27,3 +27,5 @@ void create_triangle(vec2 a, vec2 b, vec2 c, GLuint& VBO, GLuint& VAO, GLuint& c
 
 void draw_arrays(unsigned int VBOs[], unsigned int CBOs[], int length);
 void draw_array(unsigned int VBOs, unsigned int CBOs);
+
+void create_arrays(unsigned int VBOs[], unsigned int VAOs[], unsigned int CBOs[], int length);
