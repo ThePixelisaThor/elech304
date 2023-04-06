@@ -96,7 +96,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_shader(shader);
 
     // loading json
-    std::ifstream f("plan.json");
+    std::ifstream f("plan__.json");
     json data = json::parse(f);
 
     std::vector<FancyVector> walls; // vector is a list with access by id
@@ -110,8 +110,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         walls.push_back(temp_vector);
     }
 
-    unsigned int VBO_circle[721], VAO_circle[721], CBO_circle[721]; // only for zones
-    create_arrays(VBO_circle, VAO_circle, CBO_circle, 721);
+    unsigned int VBO_circle_tx[721], VAO_circle_tx[721], CBO_circle_tx[721];
+    unsigned int VBO_circle_rx[721], VAO_circle_rx[721], CBO_circle_rx[721];
+    create_arrays(VBO_circle_tx, VAO_circle_tx, CBO_circle_tx, 721);
+    create_arrays(VBO_circle_rx, VAO_circle_rx, CBO_circle_rx, 721);
 
     unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342]; // only for zones
     create_arrays(VBO_zones, VAO_zones, CBO_zones, 342);
@@ -125,8 +127,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
     }
 
-    float pos_x = 63.f;
-    float pos_y = -26.f;
+    float pos_x_tx = 12.f;
+    float pos_y_tx = -26.f;
+
+    float pos_x_rx = 24.f;
+    float pos_y_rx = -24.f;
 
     float buffer_pos_x = 0;
     float buffer_pos_y = 0;
@@ -164,6 +169,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float cam_z = 1.4f;
 
     bool draw_zone = false;
+    bool ray_tracing = false;
 
     int ray_count = 0;
     float circle_color[] = { 0.f, 0.f, 1.f };
@@ -186,12 +192,18 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // GUI code goes here
 
         ImGui::Begin("Settings");
-        ImGui::DragFloat("Value pos_x", &pos_x);
-        ImGui::DragFloat("Value pos_y", &pos_y);
+        ImGui::SeparatorText("TX");
+        ImGui::DragFloat("Value pos_x", &pos_x_tx);
+        ImGui::DragFloat("Value pos_y", &pos_y_tx);
+        ImGui::SeparatorText("RX");
+        ImGui::DragFloat("Value pos_x", &pos_x_rx);
+        ImGui::DragFloat("Value pos_y", &pos_y_rx);
+        ImGui::SeparatorText("CAM");
         ImGui::DragFloat("Cam x", &cam_x, 0.01f);
         ImGui::DragFloat("Cam y", &cam_y, 0.01f);
         ImGui::DragFloat("Cam z", &cam_z, 0.01f);
         ImGui::Checkbox("Draw zones", &draw_zone);
+        ImGui::Checkbox("Raytracing", &ray_tracing);
         ImGui::End();
 
         ImGui::Begin("Circle color");
@@ -209,9 +221,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
         // OpenGL code goes here
 
-        if (buffer_pos_x != pos_x || buffer_pos_y != pos_y || buffer_circle_color != circle_color) {
+        if (buffer_pos_x != pos_x_tx || buffer_pos_y != pos_y_tx || buffer_circle_color != circle_color) {
             render_again = true;
-            buffer_pos_x = pos_x; buffer_pos_y = pos_y;
+            buffer_pos_x = pos_x_tx; buffer_pos_y = pos_y_tx;
             buffer_circle_color[0] = circle_color[0]; 
             buffer_circle_color[1] = circle_color[1]; 
             buffer_circle_color[2] = circle_color[2]; 
@@ -240,64 +252,68 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
         // rays
         
-        vec2 center(pos_x * 10.f, pos_y * 10.f);
-        for (int i = 0; i < line_count; i++) {
-            
-            float dx = cos(i * 2.f / line_count * 3.1415f); // on pourra opti ça
-            float dy = sin(i * 2.f / line_count * 3.1415f);
-            vec2 direction(dx, dy);
+        vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
+        vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
 
-            float t = 0;
-            float s = 0;
-            bool found = true;
+        if (ray_tracing) {
+            for (int i = 0; i < line_count; i++) {
 
-            if (render_again) {
-                // calculating intersection
-                vec2 best_intersection = getIntersection(direction, center, walls, wall, found);
+                float dx = cos(i * 2.f / line_count * 3.1415f); // on pourra opti ça
+                float dy = sin(i * 2.f / line_count * 3.1415f);
+                vec2 direction(dx, dy);
 
-                if (!found){ // obligé psq on continue de render les lignes, donc il faut override
-                    create_line(center, center, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
-                    create_line(center, center, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
-                    create_line(center, center, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
-                    continue;
+                float t = 0;
+                float s = 0;
+                bool found = true;
+
+                if (render_again) {
+                    // calculating intersection
+                    vec2 best_intersection = getIntersection(direction, center_tx, walls, wall, found);
+
+                    if (!found) { // obligé psq on continue de render les lignes, donc il faut override
+                        create_line(center_tx, center_tx, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
+                        create_line(center_tx, center_tx, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
+                        create_line(center_tx, center_tx, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
+                        continue;
+                    }
+
+                    create_line(center_tx, best_intersection, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
+                    ray_count++;
+                    // reflections
+
+                    vec2 reflection_vector = direction - 2.f * dot(direction, normalize(vec2(wall.u.y, -wall.u.x))) * normalize(vec2(wall.u.y, -wall.u.x));
+
+                    vec2 best_intersection_r = getIntersection(reflection_vector, best_intersection, walls, wall, found);
+
+                    if (!found) {
+                        create_line(center_tx, center_tx, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
+                        create_line(center_tx, center_tx, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
+                        continue;
+                    }
+
+                    create_line(best_intersection, best_intersection_r, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], YELLOW);
+                    ray_count++;
+                    vec2 reflection_vector_2 = reflection_vector - 2.f * dot(reflection_vector, normalize(vec2(wall.u.y, -wall.u.x))) * normalize(vec2(wall.u.y, -wall.u.x));
+
+                    vec2 best_intersection_r2 = getIntersection(reflection_vector_2, best_intersection_r, walls, wall, found);
+
+                    if (!found) {
+                        create_line(center_tx, center_tx, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
+                        continue;
+                    }
+
+                    create_line(best_intersection_r, best_intersection_r2, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], RED);
+                    ray_count++;
                 }
-
-                create_line(center, best_intersection, VBO_lines[i], VAO_lines[i], CBO_lines[i], GREEN);
-                ray_count++;
-                // reflections
-                
-                vec2 reflection_vector = direction - 2.f * dot(direction, normalize(vec2(wall.u.y, -wall.u.x))) * normalize(vec2(wall.u.y, -wall.u.x));
-
-                vec2 best_intersection_r = getIntersection(reflection_vector, best_intersection, walls, wall, found);
-
-                if (!found) {
-                    create_line(center, center, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], GREEN);
-                    create_line(center, center, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
-                    continue;
-                }
-
-                create_line(best_intersection, best_intersection_r, VBO_lines_r[i], VAO_lines_r[i], CBO_lines_r[i], YELLOW);
-                ray_count++;
-                vec2 reflection_vector_2 = reflection_vector - 2.f * dot(reflection_vector, normalize(vec2(wall.u.y, -wall.u.x))) * normalize(vec2(wall.u.y, -wall.u.x));
-
-                vec2 best_intersection_r2 = getIntersection(reflection_vector_2, best_intersection_r, walls, wall, found);
-
-                if (!found) {
-                    create_line(center, center, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], GREEN);
-                    continue;
-                }
-
-                create_line(best_intersection_r, best_intersection_r2, VBO_lines_rr[i], VAO_lines_rr[i], CBO_lines_rr[i], RED);
-                ray_count++;
             }
-        }
 
-        // drawing rays
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        draw_arrays(VBO_lines, CBO_lines, line_count);
-        draw_arrays(VBO_lines_r, CBO_lines_r, line_count);
-        draw_arrays(VBO_lines_rr, CBO_lines_rr, line_count);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            // drawing rays
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            draw_arrays(VBO_lines, CBO_lines, line_count);
+            draw_arrays(VBO_lines_r, CBO_lines_r, line_count);
+            draw_arrays(VBO_lines_rr, CBO_lines_rr, line_count);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        }
 
         // drawing walls
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -305,27 +321,41 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // creating circle
-        float radius = 15.f;
+        float radius = 7.f;
 
         if (render_again) { // pas la méthode la plus opti pour dessiner un cercle mais soit (plus de triangles au centre qu'aux extrémités
             float x, y;
-            // vec2 center(pos_x * 10.f, pos_y * 10.f);
             for (double i = 0; i <= 360;) {
-                x = radius * cos(i * 3.141592f / 180.f) + pos_x * 10.f;
-                y = radius * sin(i * 3.141592f / 180.f) + pos_y * 10.f;
+                x = radius * cos(i * 3.141592f / 180.f) + pos_x_tx * 10.f;
+                y = radius * sin(i * 3.141592f / 180.f) + pos_y_tx * 10.f;
                 vec2 a(x, y);
                 i = i + 0.5;
-                x = radius * cos(i * 3.141592f / 180.f) + pos_x * 10.f;
-                y = radius * sin(i * 3.141592f / 180.f) + pos_y * 10.f;
+                x = radius * cos(i * 3.141592f / 180.f) + pos_x_tx * 10.f;
+                y = radius * sin(i * 3.141592f / 180.f) + pos_y_tx * 10.f;
                 vec2 b(x, y);
 
                 int j = (int)2 * (i-0.5);
-                create_triangle(a, center, b, VBO_circle[j], VAO_circle[j], CBO_circle[j], Color{ circle_color[0], circle_color[1], circle_color[2] });
+                create_triangle(a, center_tx, b, VBO_circle_tx[j], VAO_circle_tx[j], CBO_circle_tx[j], Color{ circle_color[0], circle_color[1], circle_color[2] });
             }
+
+            for (double i = 0; i <= 360;) {
+                x = radius * cos(i * 3.141592f / 180.f) + pos_x_rx * 10.f;
+                y = radius * sin(i * 3.141592f / 180.f) + pos_y_rx * 10.f;
+                vec2 a(x, y);
+                i = i + 0.5;
+                x = radius * cos(i * 3.141592f / 180.f) + pos_x_rx * 10.f;
+                y = radius * sin(i * 3.141592f / 180.f) + pos_y_rx * 10.f;
+                vec2 b(x, y);
+
+                int j = (int)2 * (i - 0.5);
+                create_triangle(a, center_rx, b, VBO_circle_rx[j], VAO_circle_rx[j], CBO_circle_rx[j], Color{ circle_color[0], circle_color[1], circle_color[2] });
+            }
+
         }
 
         // drawing circle
-        draw_arrays(VBO_circle, CBO_circle, 721);
+        draw_arrays(VBO_circle_tx, CBO_circle_tx, 721);
+        draw_arrays(VBO_circle_rx, CBO_circle_rx, 721);
 
 
         glUseProgram(0);
