@@ -21,6 +21,7 @@
 #include "render_utils.h"
 #include "shader_utils.h"
 #include "color.h"
+#include "raytracing.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -150,6 +151,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     unsigned int VBO_lines_rr[line_count], VAO_lines_rr[line_count], CBO_lines_rr[line_count];
     create_arrays(VBO_lines_rr, VAO_lines_rr, CBO_lines_rr, line_count);
 
+    unsigned int VBO_img[100], VAO_img[100], CBO_img[100];
+    create_arrays(VBO_img, VAO_img, CBO_img, 100);
+
     // init walls
     FancyVector wall;
     unsigned int VBO_walls[100], VAO_walls[100], CBO_walls[100]; // only for walls
@@ -170,6 +174,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     bool draw_zone = false;
     bool ray_tracing = false;
+    bool image_method = true;
 
     int ray_count = 0;
     float circle_color[] = { 0.f, 0.f, 1.f };
@@ -254,6 +259,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         
         vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
         vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
+
+        if (image_method)
+        {
+            trace_rays(center_tx, center_rx, walls, VBO_img, VAO_img, CBO_img);
+        }
 
         if (ray_tracing) {
             for (int i = 0; i < line_count; i++) {
