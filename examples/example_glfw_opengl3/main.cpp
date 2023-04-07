@@ -97,7 +97,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_shader(shader);
 
     // loading json
-    std::ifstream f("plan__.json");
+    std::ifstream f("plan.json");
     json data = json::parse(f);
 
     std::vector<FancyVector> walls; // vector is a list with access by id
@@ -198,11 +198,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
         ImGui::Begin("Settings");
         ImGui::SeparatorText("TX");
-        ImGui::DragFloat("Value pos_x", &pos_x_tx);
-        ImGui::DragFloat("Value pos_y", &pos_y_tx);
+        ImGui::DragFloat("Value pos_x_tx", &pos_x_tx);
+        ImGui::DragFloat("Value pos_y_tx", &pos_y_tx);
         ImGui::SeparatorText("RX");
-        ImGui::DragFloat("Value pos_x", &pos_x_rx);
-        ImGui::DragFloat("Value pos_y", &pos_y_rx);
+        ImGui::DragFloat("Value pos_x_rx", &pos_x_rx);
+        ImGui::DragFloat("Value pos_y_rx", &pos_y_rx);
         ImGui::SeparatorText("CAM");
         ImGui::DragFloat("Cam x", &cam_x, 0.01f);
         ImGui::DragFloat("Cam y", &cam_y, 0.01f);
