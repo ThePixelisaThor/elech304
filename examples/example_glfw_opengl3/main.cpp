@@ -262,7 +262,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
         if (image_method)
         {
-            trace_rays(center_tx, center_rx, walls, VBO_img, VAO_img, CBO_img);
+            trace_rays(center_tx, center_rx, walls, VBO_img, VAO_img, CBO_img, 2);
         }
 
         if (ray_tracing) {
