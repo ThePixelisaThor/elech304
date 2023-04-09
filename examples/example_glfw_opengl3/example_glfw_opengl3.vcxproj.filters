@@ -17,6 +17,9 @@
     <Filter Include="sources\assets">
       <UniqueIdentifier>{5a5f3b1b-f2cf-484b-87e4-6ffe71b79afb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\src\graphics">
+      <UniqueIdentifier>{c43d0e5c-cc14-4047-b034-4c6a8dfab520}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -49,14 +52,17 @@
     <ClCompile Include="fancy_vector.cpp">
       <Filter>sources\src</Filter>
     </ClCompile>
-    <ClCompile Include="render_utils.cpp">
-      <Filter>sources\src</Filter>
-    </ClCompile>
-    <ClCompile Include="shader_utils.cpp">
-      <Filter>sources\src</Filter>
-    </ClCompile>
     <ClCompile Include="raytracing.cpp">
       <Filter>sources\src</Filter>
+    </ClCompile>
+    <ClCompile Include="render_utils.cpp">
+      <Filter>sources\src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="shader_utils.cpp">
+      <Filter>sources\src\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="boilerplate.cpp">
+      <Filter>sources\src\graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -84,17 +90,20 @@
     <ClInclude Include="fancy_vector.h">
       <Filter>sources\src</Filter>
     </ClInclude>
-    <ClInclude Include="render_utils.h">
+    <ClInclude Include="raytracing.h">
       <Filter>sources\src</Filter>
     </ClInclude>
     <ClInclude Include="color.h">
-      <Filter>sources\src</Filter>
+      <Filter>sources\src\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="render_utils.h">
+      <Filter>sources\src\graphics</Filter>
     </ClInclude>
     <ClInclude Include="shader_utils.h">
-      <Filter>sources\src</Filter>
+      <Filter>sources\src\graphics</Filter>
     </ClInclude>
-    <ClInclude Include="raytracing.h">
-      <Filter>sources\src</Filter>
+    <ClInclude Include="boilerplate.h">
+      <Filter>sources\src\graphics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -111,6 +120,9 @@
       <Filter>sources\assets</Filter>
     </None>
     <None Include="plan__.json">
+      <Filter>sources\assets</Filter>
+    </None>
+    <None Include="materials.json">
       <Filter>sources\assets</Filter>
     </None>
   </ItemGroup>

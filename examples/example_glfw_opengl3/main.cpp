@@ -22,6 +22,7 @@
 #include "shader_utils.h"
 #include "color.h"
 #include "raytracing.h"
+#include "boilerplate.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -31,68 +32,15 @@ const GLint HEIGHT = 1080;
 
 GLuint FBO;
 GLuint RBO;
-GLuint texture_id;
 GLuint shader;
 
 glm::mat4 MVP = glm::mat4(1.0f);
 GLuint MatrixID = 0;
 
-
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
-    if (!glfwInit()) {
-        std::cout << "GLFW initialisation failed!\n";
-        glfwTerminate();
-        return 1;
-    }
-    
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
-
-    GLFWwindow* mainWindow = glfwCreateWindow(WIDTH, HEIGHT, "Projet ELEC-H304", NULL, NULL);
-    if (!mainWindow)
-    {
-        std::cout << "GLFW creation failed!\n";
-        glfwTerminate();
-        return 1;
-    }
-
-    int bufferWidth, bufferHeight;
-    glfwGetFramebufferSize(mainWindow, &bufferWidth, &bufferHeight);
-    glfwMakeContextCurrent(mainWindow);
-    glewExperimental = GL_TRUE;
-
-    if (glewInit() != GLEW_OK) {
-        std::cout << "glew initialisation failed!\n";
-        glfwDestroyWindow(mainWindow);
-        glfwTerminate();
-        return 1;
-    }
-
-    glViewport(0, 0, bufferWidth, bufferHeight);
-
-
-    IMGUI_CHECKVERSION();
-    ImGui::CreateContext();
-    ImGuiIO& io = ImGui::GetIO(); (void)io;
-    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-    io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-
-    ImGui::StyleColorsDark();
-    ImGuiStyle& style = ImGui::GetStyle();
-    if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-        style.WindowRounding = 0.0f;
-        style.Colors[ImGuiCol_WindowBg].w = 1.0f;
-    }
-
-    ImGui_ImplGlfw_InitForOpenGL(mainWindow, true);
-    ImGui_ImplOpenGL3_Init("#version 330");
+    GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
+    load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
 
     create_shader(shader);
 
@@ -116,7 +64,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_circle_tx, VAO_circle_tx, CBO_circle_tx, 721);
     create_arrays(VBO_circle_rx, VAO_circle_rx, CBO_circle_rx, 721);
 
-    unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342]; // only for zones
+    unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342];
     create_arrays(VBO_zones, VAO_zones, CBO_zones, 342);
 
     // generate local zones
@@ -333,7 +281,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // creating circle
         float radius = 7.f;
 
-        if (render_again) { // pas la méthode la plus opti pour dessiner un cercle mais soit (plus de triangles au centre qu'aux extrémités
+        if (render_again) { // pas la méthode la plus opti pour dessiner un cercle mais soit (plus de triangles au centre qu'aux extrémités)
             float x, y;
             for (double i = 0; i <= 360;) {
                 x = radius * cos(i * 3.141592f / 180.f) + pos_x_tx * 10.f;
@@ -367,32 +315,12 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         draw_arrays(VBO_circle_tx, CBO_circle_tx, 721);
         draw_arrays(VBO_circle_rx, CBO_circle_rx, 721);
 
-
-        glUseProgram(0);
         render_again = false;
 
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-        if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
-        {
-            GLFWwindow* backup_current_context = glfwGetCurrentContext();
-            ImGui::UpdatePlatformWindows();
-            ImGui::RenderPlatformWindowsDefault();
-            glfwMakeContextCurrent(backup_current_context);
-        }
-
-        glfwSwapBuffers(mainWindow);
+        render_end(mainWindow, io);
     }
 
-    ImGui_ImplOpenGL3_Shutdown();
-    ImGui_ImplGlfw_Shutdown();
-    ImGui::DestroyContext();
-
-    glDeleteFramebuffers(1, &FBO);
-    glDeleteTextures(1, &texture_id);
-    glDeleteRenderbuffers(1, &RBO);
-
-    glfwDestroyWindow(mainWindow);
-    glfwTerminate();
+    terminate(mainWindow);
 
     return 0;
 }

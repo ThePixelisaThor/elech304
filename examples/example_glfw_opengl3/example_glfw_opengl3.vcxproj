@@ -163,6 +163,7 @@
     <ClCompile Include="..\..\imgui_widgets.cpp" />
     <ClCompile Include="..\..\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="..\..\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="boilerplate.cpp" />
     <ClCompile Include="fancy_vector.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="raytracing.cpp" />
@@ -177,6 +178,7 @@
     <ClInclude Include="..\..\backends\imgui_impl_glfw.h" />
     <ClInclude Include="..\..\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="..\..\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="boilerplate.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="fancy_vector.h" />
     <ClInclude Include="raytracing.h" />
@@ -188,6 +190,7 @@
     <None Include="..\..\misc\debuggers\imgui.natstepfilter" />
     <None Include="..\..\misc\debuggers\imgui.natvis" />
     <None Include="..\README.txt" />
+    <None Include="materials.json" />
     <None Include="plan__.json" />
     <None Include="plan.json" />
   </ItemGroup>
