@@ -166,10 +166,12 @@
     <ClCompile Include="boilerplate.cpp" />
     <ClCompile Include="fancy_vector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ray.cpp" />
     <ClCompile Include="raytracing.cpp" />
     <ClCompile Include="render_utils.cpp" />
     <ClCompile Include="shader_utils.cpp" />
     <ClCompile Include="vector_math.cpp" />
+    <ClCompile Include="wall.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h" />
@@ -181,10 +183,12 @@
     <ClInclude Include="boilerplate.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="fancy_vector.h" />
+    <ClInclude Include="ray.h" />
     <ClInclude Include="raytracing.h" />
     <ClInclude Include="render_utils.h" />
     <ClInclude Include="shader_utils.h" />
     <ClInclude Include="vector_math.h" />
+    <ClInclude Include="wall.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natstepfilter" />

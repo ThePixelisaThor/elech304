@@ -20,6 +20,9 @@
     <Filter Include="sources\src\graphics">
       <UniqueIdentifier>{c43d0e5c-cc14-4047-b034-4c6a8dfab520}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\src\entities">
+      <UniqueIdentifier>{7f0968a8-62b3-49f6-9343-22f2f8d2c566}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -64,6 +67,12 @@
     <ClCompile Include="boilerplate.cpp">
       <Filter>sources\src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="ray.cpp">
+      <Filter>sources\src\entities</Filter>
+    </ClCompile>
+    <ClCompile Include="wall.cpp">
+      <Filter>sources\src\entities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -104,6 +113,12 @@
     </ClInclude>
     <ClInclude Include="boilerplate.h">
       <Filter>sources\src\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ray.h">
+      <Filter>sources\src\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="wall.h">
+      <Filter>sources\src\entities</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
