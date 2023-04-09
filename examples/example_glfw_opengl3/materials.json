@@ -1,6 +1,7 @@
 [
     {
-        "id": 1, // béton
+        "id": 1,
+        "name": "beton",
         "color_r": 0.0,
         "color_g": 0.0,
         "color_b": 1.0,
@@ -9,7 +10,8 @@
         "sigma": 0.014
     },
     {
-        "id": 2, // brique
+        "id": 2,
+        "name": "brique",
         "color_r": 1.0,
         "color_g": 0.0,
         "color_b": 0.0,
@@ -18,7 +20,18 @@
         "sigma": 0.02
     },
     {
-        "id": 1, // cloison
+        "id": 3,
+        "name": "cloison",
+        "color_r": 1.0,
+        "color_g": 1.0,
+        "color_b": 1.0,
+        "depth": 0.0,
+        "e_r": 2.25,
+        "sigma": 0.04
+    },
+    {
+        "id": 4,
+        "name": "cloison",
         "color_r": 1.0,
         "color_g": 1.0,
         "color_b": 1.0,

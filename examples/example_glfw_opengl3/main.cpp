@@ -39,21 +39,24 @@ GLuint MatrixID = 0;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
+    
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
 
     create_shader(shader);
 
     // loading json
-    std::ifstream f("plan.json");
-    json data = json::parse(f);
+    std::ifstream file_plan("plan.json");
+    json walls_data = json::parse(file_plan);
+    std::ifstream file_material("materials.json");
+    json materials_data = json::parse(file_material);
 
     std::vector<FancyVector> walls; // vector is a list with access by id
 
     // parse wall vectors
-    for (int i = 0; i < data.size(); i++) {
-        vec2 a(data[i]["point_ax"] * 10.f, data[i]["point_ay"] * 10.f);
-        vec2 b(data[i]["point_bx"] * 10.f, data[i]["point_by"] * 10.f);
+    for (int i = 0; i < walls_data.size(); i++) {
+        vec2 a(walls_data[i]["point_ax"] * 10.f, walls_data[i]["point_ay"] * 10.f);
+        vec2 b(walls_data[i]["point_bx"] * 10.f, walls_data[i]["point_by"] * 10.f);
 
         FancyVector temp_vector(a, b);
         walls.push_back(temp_vector);
@@ -68,7 +71,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_zones, VAO_zones, CBO_zones, 342);
 
     // generate local zones
-
     for (int j = 0; j <= 140; j++) {
         create_line(vec2(0.0, -j * 0.5 * 10.f), vec2(100.0 * 10.f, -j * 0.5 * 10.f), VBO_zones[j], VAO_zones[j], CBO_zones[j], YELLOW);
     }
@@ -85,7 +87,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float buffer_pos_x = 0;
     float buffer_pos_y = 0;
 
-    int material = 0;
     bool render_again = true; // temporary fix
 
     // lines
@@ -108,8 +109,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_walls, VAO_walls, CBO_walls, 100);
 
     for (int i = 0; i < walls.size(); i++) {
-        material = data[i]["material_id"];
-        create_line(walls[i].a, walls[i].b, VBO_walls[i], VAO_walls[i], CBO_walls[i], material == 1 ? BLUE : material == 2 ? RED : WHITE);
+        int material = walls_data[i]["material_id"];
+        create_line(walls[i].a, walls[i].b, VBO_walls[i], VAO_walls[i], CBO_walls[i], Color {materials_data[material - 1]["color_r"], materials_data[material - 1]["color_g"] ,materials_data[material - 1]["color_b"] });
     }
 
     // Get a handle for our "MVP" uniform
