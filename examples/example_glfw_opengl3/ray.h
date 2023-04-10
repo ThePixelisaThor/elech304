@@ -31,4 +31,5 @@ public:
     void draw(GLuint& VBO, GLuint& CBO);
 };
 
-coefficients compute_reflection_coefficients(float incident_angle_cos, float wall_relative_perm, std::complex<float> impedance_air, Wall wall, bool perpendicular_polarisation);
+coefficients compute_reflection_coefficients(float incident_angle_cos, std::complex<float> impedance_air, Wall wall);
+float compute_total_transmission(float incident_angle_cos, coefficients c, Wall wall);

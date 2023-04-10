@@ -23,6 +23,7 @@
 #include "color.h"
 #include "raytracing.h"
 #include "boilerplate.h"
+#include "ex_7_1.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -39,7 +40,9 @@ GLuint MatrixID = 0;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
-    
+
+    compute_everything();
+
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
 

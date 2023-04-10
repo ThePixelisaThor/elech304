@@ -23,6 +23,9 @@
     <Filter Include="sources\src\entities">
       <UniqueIdentifier>{7f0968a8-62b3-49f6-9343-22f2f8d2c566}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\src\tests">
+      <UniqueIdentifier>{a5bba494-817b-4711-b720-b3d87eb8b1fa}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -73,6 +76,9 @@
     <ClCompile Include="wall.cpp">
       <Filter>sources\src\entities</Filter>
     </ClCompile>
+    <ClCompile Include="ex_7_1.cpp">
+      <Filter>sources\src\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -122,6 +128,9 @@
     </ClInclude>
     <ClInclude Include="coefficients.h">
       <Filter>sources\src\entities</Filter>
+    </ClInclude>
+    <ClInclude Include="ex_7_1.h">
+      <Filter>sources\src\tests</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
