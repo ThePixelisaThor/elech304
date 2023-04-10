@@ -9,6 +9,8 @@ using namespace glm;
 #include <vector>
 #include "render_utils.h"
 #include <complex>
+#include "coefficients.h"
+#include "wall.h"
 
 class Ray {
 public:
@@ -28,3 +30,5 @@ public:
 
     void draw(GLuint& VBO, GLuint& CBO);
 };
+
+coefficients compute_reflection_coefficients(float incident_angle_cos, float wall_relative_perm, std::complex<float> impedance_air, Wall wall, bool perpendicular_polarisation);

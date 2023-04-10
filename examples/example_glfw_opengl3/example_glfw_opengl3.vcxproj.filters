@@ -120,6 +120,9 @@
     <ClInclude Include="wall.h">
       <Filter>sources\src\entities</Filter>
     </ClInclude>
+    <ClInclude Include="coefficients.h">
+      <Filter>sources\src\entities</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natvis">

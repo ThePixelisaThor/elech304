@@ -9,6 +9,8 @@ using namespace glm;
 #include <vector>
 #include "render_utils.h"
 #include <complex>
+#include "wall.h"
+#include "coefficients.h"
 
 
 void create_ray(GLuint& VBO, GLuint& VAO, GLuint& CBO, Ray ray, Color color) {
@@ -32,32 +34,28 @@ void Ray::draw(GLuint& VBO, GLuint& CBO) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-struct coefficients {
-    std::complex<float> reflection;
-    std::complex<float> transmission;
-};
-
-coefficients compute_reflection_coefficients(float incident_angle_cos, float wall_relative_perm, float wall_depth,
-                                    std::complex<float> impedance_air, std::complex<float> impedance_wall) {
+coefficients compute_reflection_coefficients(float incident_angle_cos, float wall_relative_perm, std::complex<float> impedance_air,
+    Wall wall, bool perpendicular_polarisation) {
 
     float incident_angle_sin = sqrt(1 - incident_angle_cos * incident_angle_cos);
     float transmitted_angle_sin = sqrt(1.0 / wall_relative_perm) * incident_angle_sin; // snell descartes
     float transmitted_angle_cos = sqrt(1 - transmitted_angle_sin * transmitted_angle_sin);
-    float transmitted_depth = wall_depth / transmitted_angle_cos; // transmitted angle cos should never be zero
+    float transmitted_depth = wall.depth / transmitted_angle_cos; // transmitted angle cos should never be zero
 
-    float alpha;
-    float beta; std::complex<float> beta_complex{ 0, beta };
-    std::complex<float> gamma{ alpha, beta };
     std::complex<float> one{ 1, 0 }; // 1 + 0j
     std::complex<float> j{ 0, 1 }; // 0 + 1j
     std::complex<float> two{ 2, 0 }; // 2 + 0j
+    std::complex<float> reflection_coef;
 
-    // perpendicular polarisation
-    std::complex<float> reflection_coef = (impedance_wall * incident_angle_cos - impedance_air * transmitted_angle_cos) / (impedance_wall * incident_angle_cos + impedance_air * transmitted_angle_cos);
+    if (perpendicular_polarisation)
+        reflection_coef = (wall.impedance * incident_angle_cos - impedance_air * transmitted_angle_cos) / (wall.impedance * incident_angle_cos + impedance_air * transmitted_angle_cos);
+    else
+        reflection_coef = (wall.impedance - impedance_air) / (wall.impedance + impedance_air);
+
     std::complex<float> squared_reflection_coef = reflection_coef * reflection_coef;
     // plane wave, result of a convering infinite serie
-    std::complex<float> transmission_coef = (one - squared_reflection_coef)* exp(-gamma * transmitted_depth);
-    transmission_coef /= (one - squared_reflection_coef) * exp(-two * gamma * transmitted_depth) * exp(j * beta_complex * two * transmitted_depth * transmitted_angle_sin * transmitted_angle_cos);
+    std::complex<float> transmission_coef = (one - squared_reflection_coef)* exp(-wall.gamma * transmitted_depth);
+    transmission_coef /= (one - squared_reflection_coef) * exp(-two * wall.gamma * transmitted_depth) * exp(j * wall.beta * two * transmitted_depth * transmitted_angle_sin * transmitted_angle_cos);
 
     return coefficients{ reflection_coef, transmission_coef };
 }
