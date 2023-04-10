@@ -79,6 +79,9 @@
     <ClCompile Include="ex_7_1.cpp">
       <Filter>sources\src\tests</Filter>
     </ClCompile>
+    <ClCompile Include="ex_8_1.cpp">
+      <Filter>sources\src\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -130,6 +133,9 @@
       <Filter>sources\src\entities</Filter>
     </ClInclude>
     <ClInclude Include="ex_7_1.h">
+      <Filter>sources\src\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="ex_8_1.h">
       <Filter>sources\src\tests</Filter>
     </ClInclude>
   </ItemGroup>

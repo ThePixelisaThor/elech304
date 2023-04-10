@@ -64,5 +64,6 @@ float compute_total_transmission(float incident_angle_cos, coefficients c, Wall 
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * wall.beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
 
     std::complex<double> transmission_coef_squared = pow(transmission_coef_after, 2);
+
     return sqrt(pow(transmission_coef_squared.real(), 2) + pow(transmission_coef_squared.imag(), 2));
 }
