@@ -103,8 +103,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     unsigned int VBO_lines_rr[line_count], VAO_lines_rr[line_count], CBO_lines_rr[line_count];
     create_arrays(VBO_lines_rr, VAO_lines_rr, CBO_lines_rr, line_count);
 
-    unsigned int VBO_img[100], VAO_img[100], CBO_img[100];
-    create_arrays(VBO_img, VAO_img, CBO_img, 100);
+    unsigned int VBO_img[10000], VAO_img[10000], CBO_img[10000];
+    create_arrays(VBO_img, VAO_img, CBO_img, 10000);
 
     // init walls
     FancyVector wall;
@@ -213,9 +213,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
         vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
 
+        int maxRef = 3;
         if (image_method)
         {
-            trace_rays(center_tx, center_rx, walls, VBO_img, VAO_img, CBO_img, 2);
+            trace_rays(center_tx, center_rx, walls, VBO_img, VAO_img, CBO_img, maxRef);
         }
 
         if (ray_tracing) {

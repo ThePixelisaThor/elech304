@@ -50,8 +50,18 @@ void trace_rays(vec2 tx, vec2 rx, vector<FancyVector> walls, unsigned int *VBO, 
 
         positions.push_back(pos);
         vec2 reflex(walls[i].a.x + glm::normalize(walls[i].u).x * pos, walls[i].a.y + glm::normalize(walls[i].u).y * pos);
-        create_line(tx, reflex, VBO[j], VAO[j], CBO[j], maxReflection == 3 ? GREEN : maxReflection == 2 ? YELLOW : RED);
-        create_line(reflex, rx, VBO[j + 1], VAO[j + 1], CBO[j + 1], maxReflection == 3 ? GREEN : maxReflection == 2 ? YELLOW : RED);
+        Color col;
+        if (maxReflection == 2) {
+            col = YELLOW;
+        }
+        else if (maxReflection == 1) {
+            col = RED;
+        }
+        else {
+            col = GREEN;
+        }
+        create_line(tx, reflex, VBO[j], VAO[j], CBO[j], col);
+        create_line(reflex, rx, VBO[j + 1], VAO[j + 1], CBO[j + 1], col);
         j += 2;
     }
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
