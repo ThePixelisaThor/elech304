@@ -22,16 +22,37 @@ void create_rays(GLuint*& VBO, GLuint*& VAO, GLuint*& CBO, std::vector<Ray> rays
         create_line(rays[i].origin, rays[i].end, VBO[i], VAO[i], CBO[i], color);
 }
 
+void Ray::create(GLuint& VBO, GLuint& VAO, GLuint& CBO, Color color) {
+    create_ray(VBO, VAO, CBO, *this, color);
+}
+
 void Ray::create(GLuint& VBO, GLuint& VAO, GLuint& CBO) {
-    create_ray(VBO, VAO, CBO, *this, Color{ 1 - end_energy, // hopefully this gives a good gradient
-        (end_energy > 0.33f && end_energy < 0.66f) ? (end_energy - 0.33f) * 2 : end_energy / 2.f,
-        (end_energy > 0.5f) ? (end_energy - 0.5f) * 2.f : 0.f });
+    /* create_ray(VBO, VAO, CBO, *this, Color{1 - energy, // hopefully this gives a good gradient
+        (energy > 0.33f && energy < 0.66f) ? (energy - 0.33f) * 2 : energy / 2.f,
+        (energy > 0.5f) ? (energy - 0.5f) * 2.f : 0.f });*/
+    create_ray(VBO, VAO, CBO, *this, (energy > 0.75f) ? RED : (energy > 0.5f) ? YELLOW : (energy > 0.25f) ? GREEN : BLUE);
 }
 
 void Ray::draw(GLuint& VBO, GLuint& CBO) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     draw_array(VBO, CBO);
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+}
+
+void Ray::create_draw(Color color) {
+    unsigned int VBOs[10], VAOs[10], CBOs[10]; // je pense qu'il faut pas que ce soit un tableau, à fix
+    create_arrays(VBOs, VAOs, CBOs, 10);
+
+    create(VBOs[1], VAOs[1], CBOs[1], color);
+    draw(VBOs[1], CBOs[1]);
+}
+
+void Ray::create_draw() {
+    unsigned int VBOs[10], VAOs[10], CBOs[10]; // idem
+    create_arrays(VBOs, VAOs, CBOs, 10);
+
+    create(VBOs[1], VAOs[1], CBOs[1]); // la couleur change en fonction de l'énergie
+    draw(VBOs[1], CBOs[1]);
 }
 
 coefficients compute_reflection_coefficients(float incident_angle_cos, std::complex<float> impedance_air, Wall wall) {

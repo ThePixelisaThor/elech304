@@ -24,6 +24,8 @@
 #include "raytracing.h"
 #include "boilerplate.h"
 #include "ex_8_1.h"
+#include "ray.h"
+#include "ray.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -49,7 +51,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_shader(shader);
 
     // loading json
-    std::ifstream file_plan("plan.json");
+    std::ifstream file_plan("plan_test.json");
     json walls_data = json::parse(file_plan);
     std::ifstream file_material("materials.json");
     json materials_data = json::parse(file_material);
@@ -81,8 +83,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
     }
 
-    float pos_x_tx = 12.f;
-    float pos_y_tx = -26.f;
+    float pos_x_tx = -10.f;
+    float pos_y_tx = -28.f;
 
     float pos_x_rx = 24.f;
     float pos_y_rx = -24.f;
@@ -117,13 +119,21 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             Color {materials_data[material - 1]["color_r"], materials_data[material - 1]["color_g"] ,materials_data[material - 1]["color_b"] });
     }
 
+    // Wall(float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth);
+    std::vector<Wall> walls_obj;
+    for (int i = 0; i < walls.size(); i++) {
+        int material = walls_data[i]["material_id"] - 1;
+        walls_obj.push_back(Wall(materials_data[material]["e_r"], materials_data[material]["sigma"], 26.f * pow(10, 9) * 2.f * 3.14159265f,
+                        walls[i], materials_data[material]["depth"]));
+    }
+
     // Get a handle for our "MVP" uniform
     MatrixID = glGetUniformLocation(shader, "MVP");
 
     float zoom_factor = 2.f;
-    float cam_x = 0.4f;
-    float cam_y = 0.f;
-    float cam_z = 1.4f;
+    float cam_x = -0.1f;
+    float cam_y = 0.13f;
+    float cam_z = 1.06f;
 
     bool draw_zone = false;
     bool ray_tracing = false;
@@ -132,6 +142,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     int ray_count = 0;
     float circle_color[] = { 0.f, 0.f, 1.f };
     float buffer_circle_color[] = { 0.f, 0.f, 1.f };
+
+    std::vector<Ray> all_rays;
 
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
@@ -213,11 +225,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
         vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
 
-        int maxRef = 3;
-        if (image_method)
+        int maxRef = 2;
+        if (image_method && render_again)
         {
-            trace_rays(center_tx, center_rx, walls, VBO_img, VAO_img, CBO_img, maxRef);
+            all_rays = {};
+            // trajet direct
+            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, walls_obj, 1.0f, 0, 0);
+            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, all_rays, maxRef, 0);
+
         }
+
+        for (Ray r : all_rays) r.create_draw();
 
         if (ray_tracing) {
             for (int i = 0; i < line_count; i++) {

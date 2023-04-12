@@ -158,5 +158,11 @@
     <None Include="materials.json">
       <Filter>sources\assets</Filter>
     </None>
+    <None Include="plan_.json">
+      <Filter>sources\assets</Filter>
+    </None>
+    <None Include="plan_test.json">
+      <Filter>sources\assets</Filter>
+    </None>
   </ItemGroup>
 </Project>

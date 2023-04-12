@@ -25,7 +25,7 @@
         "color_r": 1.0,
         "color_g": 1.0,
         "color_b": 1.0,
-        "depth": 0.0,
+        "depth": 0.1,
         "e_r": 2.25,
         "sigma": 0.04
     },
@@ -35,7 +35,7 @@
         "color_r": 1.0,
         "color_g": 1.0,
         "color_b": 1.0,
-        "depth": 0.0,
+        "depth": 0.1,
         "e_r": 2.25,
         "sigma": 0.04
     }

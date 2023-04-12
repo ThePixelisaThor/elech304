@@ -200,6 +200,8 @@
     <None Include="..\..\misc\debuggers\imgui.natvis" />
     <None Include="..\README.txt" />
     <None Include="materials.json" />
+    <None Include="plan_.json" />
+    <None Include="plan_test.json" />
     <None Include="plan__.json" />
     <None Include="plan.json" />
   </ItemGroup>

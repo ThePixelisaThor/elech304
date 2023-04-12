@@ -19,16 +19,27 @@ public:
     vec2 direction = end - origin;
     float length = sqrt(pow(direction.x, 2) + pow(direction.y, 2));
     vec2 normalized_direction = normalize(direction);
-    float start_energy; // relative, 1.0 is no loss
-    float end_energy; // before reflection
-    short reflection_count;
-    short transmission_count; // one wall = one transmission
-    short base_station_id;
+    float energy; // a ray transmitted through a wall creates a new ray
+    short base_station_id = 1;
+    float total_distance_travelled; // stores the distance of previous rays that created this one
+
+    Ray(vec2 _origin, vec2 _end, float _energy, float _total_distance_travelled) {
+        origin = _origin;
+        end = _end;
+        energy = _energy;
+        total_distance_travelled = _total_distance_travelled;
+    }
 
 public:
+    void create(GLuint& VBO, GLuint& VAO, GLuint& CBO, Color color);
+
     void create(GLuint& VBO, GLuint& VAO, GLuint& CBO);
 
     void draw(GLuint& VBO, GLuint& CBO);
+
+    void create_draw(Color color);
+
+    void create_draw();
 };
 
 coefficients compute_reflection_coefficients(float incident_angle_cos, std::complex<float> impedance_air, Wall wall);
