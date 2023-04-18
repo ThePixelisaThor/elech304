@@ -52,6 +52,10 @@ void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, 
     vec2 reflection_vector = direction_before - 2.f * glm::dot(direction_before,
                                 glm::normalize(vec2(wall.fancy_vector.u.y, -wall.fancy_vector.u.x))) * glm::normalize(vec2(wall.fancy_vector.u.y, -wall.fancy_vector.u.x));
     float reflection_coef = sqrt(pow(cs.reflection.real(), 2) + pow(cs.reflection.imag(), 2));
+    if (reflection_coef >= 1.f) {
+        //breakpoint
+        cout << "problem" << endl;
+    }
     if (reflexion_left != 0)
     compute_ray(tx, rx, reflection_vector, hit_point, all_rays, buffer, walls, start_energy * reflection_coef, total_distance, reflexion_left - 1);
 

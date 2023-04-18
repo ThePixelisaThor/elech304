@@ -73,16 +73,37 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_circle_tx, VAO_circle_tx, CBO_circle_tx, 721);
     create_arrays(VBO_circle_rx, VAO_circle_rx, CBO_circle_rx, 721);
 
-    unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342];
+    // generate local zones
+    /*unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342];
     create_arrays(VBO_zones, VAO_zones, CBO_zones, 342);
 
-    // generate local zones
+    
     for (int j = 0; j <= 140; j++) {
         create_line(vec2(0.0, -j * 0.5 * 10.f), vec2(100.0 * 10.f, -j * 0.5 * 10.f), VBO_zones[j], VAO_zones[j], CBO_zones[j], YELLOW);
     }
     for (int i = 0; i <= 200; i++) {
         create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
+    }*/
+
+    // generate local zones
+
+    const int zone_count_x = 10;
+    const int zone_count_y = 10;
+
+    GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
+    GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
+    GLuint* CBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
+    create_arrays(VBO_zones_rect, VAO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
+
+    for (int x = 0; x < zone_count_x; x++) {
+        for (int y = 0; y < zone_count_y; y++) {
+            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -y * 1000.f / zone_count_x),
+                vec2(x * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x),
+                VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y],
+                Color{(float) x/zone_count_x, (float)y / zone_count_y, 0.f });
+        }
     }
+
 
     float pos_x_tx = -11.f;
     float pos_y_tx = -44.f;
@@ -141,6 +162,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     bool draw_zone = false;
     bool ray_tracing = false;
+    bool ray_tracing_buffer = false;
     bool image_method = true;
 
     int ray_count = 0;
@@ -198,7 +220,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // OpenGL code goes here
 
         if (buffer_pos_tx_x != pos_x_tx || buffer_pos_tx_y != pos_y_tx ||
-            buffer_pos_rx_x != pos_x_rx || buffer_pos_rx_y != pos_y_rx || (buffer_circle_color[0] != circle_color[0])) {
+            buffer_pos_rx_x != pos_x_rx || buffer_pos_rx_y != pos_y_rx ||
+            (buffer_circle_color[0] != circle_color[0]) || ray_tracing_buffer != ray_tracing) {
             render_again = true;
             buffer_pos_tx_x = pos_x_tx; buffer_pos_tx_y = pos_y_tx;
             buffer_pos_rx_x = pos_x_rx; buffer_pos_rx_y = pos_y_rx;
@@ -206,6 +229,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             buffer_circle_color[1] = circle_color[1]; 
             buffer_circle_color[2] = circle_color[2]; 
             ray_count = 0;
+            ray_tracing_buffer = ray_tracing;
         }
 
         glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float) bufferWidth / (float) bufferHeight, 0.01f, 1000.0f);
@@ -216,16 +240,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             glm::vec3(cam_x, cam_y, cam_z - 1.), // and looks at the origin
             glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
         );
-        // Model matrix : an identity matrix (model will be at the origin)
         glm::mat4 Model = glm::mat4(1.0f);
-        // Our ModelViewProjection : multiplication of our 3 matrices
-        MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
+        MVP = Projection * View * Model;
 
         if (draw_zone) {
-            //drawing local zones
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            draw_arrays(VBO_zones, CBO_zones, 342);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            draw_arrays_rect(VBO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
+            //drawing local zones
+            /*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            draw_arrays(VBO_zones, CBO_zones, 342);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
         }
 
         // rays
@@ -265,6 +289,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // for (Ray r : all_rays) r.create_draw(); // c'est de la merde ça memory leak
         ray_count = ray_vbo_buffer.size();
         if (ray_tracing) {
+
             for (int i = 0; i < line_count; i++) {
 
                 float dx = cos(i * 2.f / line_count * 3.1415f); // on pourra opti ça
