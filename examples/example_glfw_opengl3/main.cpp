@@ -26,6 +26,7 @@
 #include "ex_8_1.h"
 #include "ray.h"
 #include "ray.h"
+#include "ex_7_1.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -42,8 +43,8 @@ GLuint MatrixID = 0;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
-
-    compute_everything_8();
+    // compute_everything();
+    // compute_everything_8();
 
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
@@ -83,11 +84,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
     }
 
-    float pos_x_tx = -10.f;
-    float pos_y_tx = -28.f;
+    float pos_x_tx = -11.f;
+    float pos_y_tx = -44.f;
 
-    float pos_x_rx = 24.f;
-    float pos_y_rx = -24.f;
+    float pos_x_rx = -12.f;
+    float pos_y_rx = 5.f;
 
     float buffer_pos_tx_x = 0;
     float buffer_pos_tx_y = 0;
@@ -134,9 +135,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     MatrixID = glGetUniformLocation(shader, "MVP");
 
     float zoom_factor = 2.f;
-    float cam_x = -0.1f;
-    float cam_y = 0.13f;
-    float cam_z = 1.06f;
+    float cam_x = 0.3f;
+    float cam_y = 0.03f;
+    float cam_z = 1.890f;
 
     bool draw_zone = false;
     bool ray_tracing = false;
@@ -262,7 +263,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         } 
         // for (Ray r : all_rays) r.create_draw(); // c'est de la merde ça memory leak
-
+        ray_count = ray_vbo_buffer.size();
         if (ray_tracing) {
             for (int i = 0; i < line_count; i++) {
 

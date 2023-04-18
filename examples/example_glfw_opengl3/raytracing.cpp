@@ -44,7 +44,7 @@ void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, 
     // when a ray hits a wall, two rays are created
     vec2 normalized_direction = glm::normalize(direction_before);
 
-    float incident_cos = abs(glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction)); // pas sûr
+    float incident_cos = abs(glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction)); // pour que l'angle soit entre -90 et 90
 
     // reflected ray
     complex<float> air_impedance = compute_impedance(1.f, 0, 1);
@@ -68,7 +68,7 @@ void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray> 
 
     if (direction_normalized.x < direction_to_rx.x + 0.01 && direction_normalized.x > direction_to_rx.x - 0.01 &&
         direction_normalized.y < direction_to_rx.y + 0.01 && direction_normalized.y > direction_to_rx.y - 0.01) {
-        float distance_to_rx = length(direction_to_rx);
+        float distance_to_rx = length(rx - ray_origin);
         // a wall could be between the ray reflex and RX
         bool found_wall_intersect_before_rx = true;
         Wall best_wall = walls[0];
@@ -76,7 +76,9 @@ void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray> 
         vec2 hit_point = getIntersection(direction, ray_origin, walls, best_wall, found_wall_intersect_before_rx, distance_to_rx);
 
         if (found_wall_intersect_before_rx) {
-            return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, vector<Ray>(buffer), start_energy, total_distance, reflexion_left);
+            vector<Ray> buffer2(buffer);
+            buffer2.push_back(Ray(ray_origin, hit_point, start_energy, total_distance + length(ray_origin - hit_point)));
+            return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, buffer2, start_energy, total_distance, reflexion_left);
         }
 
         buffer.push_back(Ray(ray_origin, rx, start_energy, total_distance + distance_to_rx));

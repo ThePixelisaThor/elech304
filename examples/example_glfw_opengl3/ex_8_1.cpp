@@ -11,11 +11,28 @@ void compute_everything_8() {
 
     Wall w(4.8f, 0.018f, pulsation, FancyVector{}, 0.15);
 
+    /*
+    float coefs[360];
+    for (int i = 0; i < 360; i++) {
+
+        //coefficients c = compute_reflection_coefficients(0.9648f, Z0, w);
+        float b = cos(i * 2.f * 3.141592f / 360.f);
+        coefficients c = compute_reflection_coefficients(abs(b), Z0, w);
+
+        float total_transmission = compute_total_transmission(b, c, w);
+        // la valeur de transmission_coef_after est très proche de celle du corrigé (0.67 + 0.25i) vs (0.69 + 0.23i)
+        // donc je suppose que ce sont les arrondis ?
+        coefs[i] = total_transmission;
+    } */
+
+    // ex 8
     coefficients c = compute_reflection_coefficients(0.9648f, Z0, w);
 
     float total_transmission = compute_total_transmission(1.f, c, w);
-    // la valeur de transmission_coef_after est très proche de celle du corrigé (0.67 + 0.25i) vs (0.69 + 0.23i)
+    // la valeur de transmission_coef_after est très proche de celle du corrigé (0.67 + 0.25i) vs (0.69 + 0.26i)
     // donc je suppose que ce sont les arrondis ?
+
+
 
     float alpha = compute_alpha(4.8f, 0.018f, pulsation); // 1.55 ✅
     float beta = compute_beta(4.8f, 0.018f, pulsation); // 39.9 ✅

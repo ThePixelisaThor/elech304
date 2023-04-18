@@ -65,7 +65,7 @@ coefficients compute_reflection_coefficients(float incident_angle_cos, std::comp
     std::complex<float> two{ 2, 0 }; // 2 + 0j
     std::complex<float> reflection_coef = (wall.impedance * incident_angle_cos - impedance_air * transmitted_angle_cos) / (wall.impedance * incident_angle_cos + impedance_air * transmitted_angle_cos);
     std::complex<float> transmission_coef = (2.f * wall.impedance * incident_angle_cos) / (wall.impedance * incident_angle_cos + impedance_air * transmitted_angle_cos);
-    std::complex<float> transmission_coef_reverse = (2.f * impedance_air * incident_angle_cos) / (wall.impedance * incident_angle_cos + impedance_air * transmitted_angle_cos);
+    std::complex<float> transmission_coef_reverse = (2.f * impedance_air * transmitted_angle_cos) / (wall.impedance * incident_angle_cos + impedance_air * transmitted_angle_cos);
 
     return coefficients{ reflection_coef, transmission_coef, transmission_coef_reverse };
 }
