@@ -27,10 +27,8 @@ void Ray::create(GLuint& VBO, GLuint& VAO, GLuint& CBO, Color color) {
 }
 
 void Ray::create(GLuint& VBO, GLuint& VAO, GLuint& CBO) {
-    /* create_ray(VBO, VAO, CBO, *this, Color{1 - energy, // hopefully this gives a good gradient
-        (energy > 0.33f && energy < 0.66f) ? (energy - 0.33f) * 2 : energy / 2.f,
-        (energy > 0.5f) ? (energy - 0.5f) * 2.f : 0.f });*/
-    create_ray(VBO, VAO, CBO, *this, (energy > 0.75f) ? RED : (energy > 0.5f) ? YELLOW : (energy > 0.25f) ? GREEN : BLUE);
+    create_ray(VBO, VAO, CBO, *this, getGradientColor(energy));
+    //create_ray(VBO, VAO, CBO, *this, (energy > 0.75f) ? RED : (energy > 0.5f) ? YELLOW : (energy > 0.25f) ? GREEN : BLUE);
 }
 
 void Ray::draw(GLuint& VBO, GLuint& CBO) {
@@ -87,4 +85,40 @@ float compute_total_transmission(float incident_angle_cos, coefficients c, Wall 
     std::complex<double> transmission_coef_squared = pow(transmission_coef_after, 2);
 
     return sqrt(pow(transmission_coef_squared.real(), 2) + pow(transmission_coef_squared.imag(), 2));
+}
+
+Color getGradientColor(double intensity) {
+    Color c;
+
+    // Map intensity value to a range from 0 to 1
+    double t = 1.0 - intensity;
+
+    // Interpolate between different colors in the gradient
+    if (t < 0.2) {
+        c.r = 255;
+        c.g = 255 * t / 0.2;
+        c.b = 0;
+    }
+    else if (t < 0.6) {
+        c.r = 255 - 255 * (t - 0.2) / 0.2;
+        c.g = 255;
+        c.b = 0;
+    }
+    else if (t < 0.75) {
+        c.r = 0;
+        c.g = 255;
+        c.b = 255 * (t - 0.4) / 0.2;
+    }
+    else if (t < 0.95) {
+        c.r = 0;
+        c.g = 255 - 255 * (t - 0.6) / 0.2;
+        c.b = 255;
+    }
+    else {
+        c.r = 255 * (t - 0.8) / 0.2;
+        c.g = 0;
+        c.b = 255;
+    }
+
+    return c;
 }

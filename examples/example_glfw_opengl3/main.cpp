@@ -89,8 +89,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float pos_x_rx = 24.f;
     float pos_y_rx = -24.f;
 
-    float buffer_pos_x = 0;
-    float buffer_pos_y = 0;
+    float buffer_pos_tx_x = 0;
+    float buffer_pos_tx_y = 0;
+
+    float buffer_pos_rx_x = 0;
+    float buffer_pos_rx_y = 0;
 
     bool render_again = true; // temporary fix
 
@@ -144,6 +147,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float buffer_circle_color[] = { 0.f, 0.f, 1.f };
 
     std::vector<Ray> all_rays;
+    std::vector<unsigned int> ray_cbo_buffer;
+    std::vector<unsigned int> ray_vbo_buffer;
 
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
@@ -191,9 +196,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
         // OpenGL code goes here
 
-        if (buffer_pos_x != pos_x_tx || buffer_pos_y != pos_y_tx || buffer_circle_color != circle_color) {
+        if (buffer_pos_tx_x != pos_x_tx || buffer_pos_tx_y != pos_y_tx ||
+            buffer_pos_rx_x != pos_x_rx || buffer_pos_rx_y != pos_y_rx || (buffer_circle_color[0] != circle_color[0])) {
             render_again = true;
-            buffer_pos_x = pos_x_tx; buffer_pos_y = pos_y_tx;
+            buffer_pos_tx_x = pos_x_tx; buffer_pos_tx_y = pos_y_tx;
+            buffer_pos_rx_x = pos_x_rx; buffer_pos_rx_y = pos_y_rx;
             buffer_circle_color[0] = circle_color[0]; 
             buffer_circle_color[1] = circle_color[1]; 
             buffer_circle_color[2] = circle_color[2]; 
@@ -228,14 +235,33 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         int maxRef = 2;
         if (image_method && render_again)
         {
+
             all_rays = {};
             // trajet direct
-            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, walls_obj, 1.0f, 0, 0);
+            std::vector<Ray> _buffer;
+            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, 1.0f, 0, 0);
             generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, all_rays, maxRef, 0);
 
-        }
+            ray_cbo_buffer = {};
+            ray_vbo_buffer = {};
 
-        for (Ray r : all_rays) r.create_draw();
+            for (Ray r : all_rays) {
+                unsigned int VBO[3];
+                unsigned int CBO[3];
+                unsigned int VAO[3];
+                create_arrays(VBO, VAO, CBO, 3);
+                r.create(*VBO, *VAO, *CBO);
+                ray_cbo_buffer.push_back(*CBO);
+                ray_vbo_buffer.push_back(*VBO);
+            }
+        }
+        
+        for (int i = 0; i < ray_cbo_buffer.size(); i++) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            draw_array(ray_vbo_buffer[i], ray_cbo_buffer[i]);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        } 
+        // for (Ray r : all_rays) r.create_draw(); // c'est de la merde ça memory leak
 
         if (ray_tracing) {
             for (int i = 0; i < line_count; i++) {

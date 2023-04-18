@@ -40,11 +40,11 @@ vec2 getMirrorWithWall(vec2 point, FancyVector wall) {
     return vec2(point.x - 2 * glm::normalize(wall.n).x * dot(s, glm::normalize(wall.n)), point.y - 2 * glm::normalize(wall.n).y * dot(s, glm::normalize(wall.n)));
 }
 
-void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, vector<Wall> walls, Wall wall, vector<Ray>& all_rays, float start_energy, float total_distance, int reflexion_left) {
+void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, vector<Wall> walls, Wall wall, vector<Ray>& all_rays, vector<Ray>& buffer, float start_energy, float total_distance, int reflexion_left) {
     // when a ray hits a wall, two rays are created
     vec2 normalized_direction = glm::normalize(direction_before);
 
-    float incident_cos = -glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction); // pas sûr de pq j'ai mis un - 
+    float incident_cos = abs(glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction)); // pas sûr
 
     // reflected ray
     complex<float> air_impedance = compute_impedance(1.f, 0, 1);
@@ -53,14 +53,14 @@ void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, 
                                 glm::normalize(vec2(wall.fancy_vector.u.y, -wall.fancy_vector.u.x))) * glm::normalize(vec2(wall.fancy_vector.u.y, -wall.fancy_vector.u.x));
     float reflection_coef = sqrt(pow(cs.reflection.real(), 2) + pow(cs.reflection.imag(), 2));
     if (reflexion_left != 0)
-    compute_ray(tx, rx, reflection_vector, hit_point, all_rays, walls, start_energy * reflection_coef, total_distance, reflexion_left - 1);
+    compute_ray(tx, rx, reflection_vector, hit_point, all_rays, buffer, walls, start_energy * reflection_coef, total_distance, reflexion_left - 1);
 
     // transmitted ray
     float transmission = compute_total_transmission(incident_cos, cs, wall);
-    compute_ray(tx, rx, direction_before, hit_point, all_rays, walls, start_energy * transmission, total_distance, reflexion_left);
+    compute_ray(tx, rx, direction_before, hit_point, all_rays, buffer, walls, start_energy * transmission, total_distance, reflexion_left);
 }
 
-void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray> &all_rays, vector<Wall> walls, float start_energy, float total_distance, int reflexion_left) {
+void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray> &all_rays, vector<Ray> &buffer, vector<Wall> walls, float start_energy, float total_distance, int reflexion_left) {
     if (reflexion_left == -1) return;
     // is hitting RX
     vec2 direction_to_rx = normalize(rx - ray_origin);
@@ -76,11 +76,14 @@ void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray> 
         vec2 hit_point = getIntersection(direction, ray_origin, walls, best_wall, found_wall_intersect_before_rx, distance_to_rx);
 
         if (found_wall_intersect_before_rx) {
-            return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, start_energy, total_distance, reflexion_left);
+            return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, vector<Ray>(buffer), start_energy, total_distance, reflexion_left);
         }
 
-        all_rays.push_back(Ray(ray_origin, rx, start_energy, total_distance + distance_to_rx));
-
+        buffer.push_back(Ray(ray_origin, rx, start_energy, total_distance + distance_to_rx));
+        for (Ray r : buffer) { // adds the rays only if they actually hit RX
+            all_rays.push_back(r);
+        }
+        
         return;
     }
 
@@ -90,9 +93,10 @@ void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray> 
 
     if (found) {
         // the ray hit a wall
-        all_rays.push_back(Ray(ray_origin, hit_point, start_energy, total_distance + length(hit_point - ray_origin)));
-
-        return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, start_energy, total_distance, reflexion_left);
+        vector<Ray> buffer2(buffer);
+        buffer2.push_back(Ray(ray_origin, hit_point, start_energy, total_distance + length(hit_point - ray_origin)));
+        // copies the vector
+        return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, buffer2, start_energy, total_distance, reflexion_left);
     }
 }
 
@@ -110,7 +114,8 @@ void generate_rays_direction(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> walls,
 
         // a direction has been found
         vec2 direction = reflex - tx;
-        compute_ray(tx, rx, direction, tx, all_rays, walls, 1.0f, direction.length(), max_reflexion - counter + 3);
+        vector<Ray> buffer;
+        compute_ray(tx, rx, direction, tx, all_rays, buffer, walls, 1.0f, direction.length(), max_reflexion - counter + 2);
     }
 
     if (counter == max_reflexion) {
@@ -143,7 +148,7 @@ vec2 getIntersection(vec2 direction, vec2 origin, vector<Wall> walls, Wall &wall
             s = (origin.y + direction.y * t - wall.a.y) / wall.u.y;
         }
 
-        if (t <= 0.1 || t > 100000 || s < 0.01 || s > 0.99) continue;
+        if (t < 0.01 || t > 100000 || s < 0.01 || s > 1) continue;
 
         vec2 intersection = vec2(origin.x + t * direction.x, origin.y + t * direction.y);
         distance = length(intersection - origin);
