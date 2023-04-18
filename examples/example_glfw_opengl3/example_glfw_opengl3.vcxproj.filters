@@ -82,6 +82,9 @@
     <ClCompile Include="ex_8_1.cpp">
       <Filter>sources\src\tests</Filter>
     </ClCompile>
+    <ClCompile Include="zone_tracing.cpp">
+      <Filter>sources\src</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -137,6 +140,9 @@
     </ClInclude>
     <ClInclude Include="ex_8_1.h">
       <Filter>sources\src\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="zone_tracing.h">
+      <Filter>sources\src</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -27,6 +27,7 @@
 #include "ray.h"
 #include "ray.h"
 #include "ex_7_1.h"
+#include "zone_tracing.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -52,7 +53,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_shader(shader);
 
     // loading json
-    std::ifstream file_plan("plan_test.json");
+    std::ifstream file_plan("plan.json");
     json walls_data = json::parse(file_plan);
     std::ifstream file_material("materials.json");
     json materials_data = json::parse(file_material);
@@ -85,28 +86,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
     }*/
 
-    // generate local zones
-
-    const int zone_count_x = 10;
-    const int zone_count_y = 10;
-
-    GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
-    GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
-    GLuint* CBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
-    create_arrays(VBO_zones_rect, VAO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
-
-    for (int x = 0; x < zone_count_x; x++) {
-        for (int y = 0; y < zone_count_y; y++) {
-            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -y * 1000.f / zone_count_x),
-                vec2(x * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x),
-                VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y],
-                Color{(float) x/zone_count_x, (float)y / zone_count_y, 0.f });
-        }
-    }
-
-
-    float pos_x_tx = -11.f;
-    float pos_y_tx = -44.f;
+    
+    float pos_x_tx = -29.f;
+    float pos_y_tx = -80.f;
 
     float pos_x_rx = -12.f;
     float pos_y_rx = 5.f;
@@ -119,6 +101,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     bool render_again = true; // temporary fix
 
+    
     // lines
     const int line_count = 50;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
@@ -150,6 +133,39 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         int material = walls_data[i]["material_id"] - 1;
         walls_obj.push_back(Wall(materials_data[material]["e_r"], materials_data[material]["sigma"], 26.f * pow(10, 9) * 2.f * 3.14159265f,
                         walls[i], materials_data[material]["depth"]));
+    }
+
+    // generate local zones
+
+    const int zone_count_x = 100;
+    const int zone_count_y = 100;
+
+    GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
+    GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
+    GLuint* CBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
+    create_arrays(VBO_zones_rect, VAO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
+
+    vec2 tx_zone(pos_x_tx * 10.f, pos_y_tx * 10.f);
+
+    for (int x = 0; x < zone_count_x; x++) {
+        for (int y = 0; y < zone_count_y; y++) {
+            // les problèmes
+            vec2 rx_zone((x + 0.5f) * 1000.f / zone_count_x, -(y + 0.5) * 1000.f / zone_count_x);
+
+            std::vector<Ray> rays__;
+            generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 2);
+
+            float power = compute_energy(rays__); // in db
+            float log_power = log(power) / log(10); // c'est en base 2
+            Color c{(12.f + log_power) / 4.f, (12.f + log_power) / 4.f, 0.f};
+
+            if (c.r < 0.) c.r = 0.f;
+            if (c.g < 0.) c.g = 0.f;
+
+            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -y * 1000.f / zone_count_x),
+                vec2(x * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x),
+                VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y], c);
+        }
     }
 
     // Get a handle for our "MVP" uniform
