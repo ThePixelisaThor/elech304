@@ -87,11 +87,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     }*/
 
     
-    float pos_x_tx = -29.f;
-    float pos_y_tx = -80.f;
+    float pos_x_tx = 80.f;
+    float pos_y_tx = -20.f;
 
-    float pos_x_rx = -12.f;
-    float pos_y_rx = 5.f;
+    float pos_x_rx = 26.f;
+    float pos_y_rx = -63.f;
 
     float buffer_pos_tx_x = 0;
     float buffer_pos_tx_y = 0;
@@ -137,8 +137,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     // generate local zones
 
-    const int zone_count_x = 100;
-    const int zone_count_y = 100;
+    const int zone_count_x = 20;
+    const int zone_count_y = 14;
 
     GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
     GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
@@ -150,20 +150,24 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     for (int x = 0; x < zone_count_x; x++) {
         for (int y = 0; y < zone_count_y; y++) {
             // les problèmes
-            vec2 rx_zone((x + 0.5f) * 1000.f / zone_count_x, -(y + 0.5) * 1000.f / zone_count_x);
+            vec2 rx_zone((x + 0.5f) * 1000.f / zone_count_x, -(y + 0.5) * 700.f / zone_count_y);
 
             std::vector<Ray> rays__;
             generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 2);
 
+            /*
             float power = compute_energy(rays__); // in db
             float log_power = log(power) / log(10); // c'est en base 2
             Color c{(12.f + log_power) / 4.f, (12.f + log_power) / 4.f, 0.f};
 
             if (c.r < 0.) c.r = 0.f;
             if (c.g < 0.) c.g = 0.f;
+            */
 
-            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -y * 1000.f / zone_count_x),
-                vec2(x * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 1000.f / zone_count_x),
+            Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
+
+            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
+                vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
                 VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y], c);
         }
     }
@@ -295,6 +299,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
                 ray_cbo_buffer.push_back(*CBO);
                 ray_vbo_buffer.push_back(*VBO);
             }
+
         }
         
         for (int i = 0; i < ray_cbo_buffer.size(); i++) {
