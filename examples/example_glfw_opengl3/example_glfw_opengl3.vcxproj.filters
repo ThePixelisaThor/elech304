@@ -85,6 +85,9 @@
     <ClCompile Include="zone_tracing.cpp">
       <Filter>sources\src</Filter>
     </ClCompile>
+    <ClCompile Include="color.cpp">
+      <Filter>sources\src\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">

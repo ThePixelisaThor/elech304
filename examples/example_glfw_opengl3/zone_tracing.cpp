@@ -37,11 +37,12 @@ void generate_new_rays_zone(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_bef
 void compute_ray_zone(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>& rays_hitting, vector<Wall> walls, float start_energy, float total_distance, int reflexion_left) {
     if (reflexion_left == -1) return;
     // is hitting RX
+
     vec2 direction_to_rx = normalize(rx - ray_origin);
     vec2 direction_normalized = normalize(direction);
 
-    if (direction_normalized.x < direction_to_rx.x + 0.01 && direction_normalized.x > direction_to_rx.x - 0.01 &&
-        direction_normalized.y < direction_to_rx.y + 0.01 && direction_normalized.y > direction_to_rx.y - 0.01) {
+    if (direction_normalized.x < direction_to_rx.x + 0.000001 && direction_normalized.x > direction_to_rx.x - 0.000001 &&
+        direction_normalized.y < direction_to_rx.y + 0.000001 && direction_normalized.y > direction_to_rx.y - 0.000001) {
         float distance_to_rx = length(rx - ray_origin);
         // a wall could be between the ray reflex and RX
         bool found_wall_intersect_before_rx = true;
@@ -99,10 +100,10 @@ float compute_energy(std::vector<Ray>& rays_hitting)
     return average_power / (8.f * equivalent_resistance);
 }
 
-void generate_rays_direction_(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> walls, vector<Ray>& rays_hitting, int max_reflexion, int counter) {
+void generate_rays_direction_(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> walls, int previous, vector<Ray>& rays_hitting, int max_reflexion, int counter) {
     vector<float> positions;
     counter++;
-    for (int i = 0; i < walls.size(); i++)
+    for (int i = previous + 1; i < walls.size(); i++)
     {
         bool found = true;
         float pos = compute_reflection(tx, fake_rx, walls[i].fancy_vector, found);
@@ -120,17 +121,18 @@ void generate_rays_direction_(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> walls
         return;
     }
 
-    for (int i = 0; i < walls.size(); i++) // recursion
+    for (int i = previous + 1; i < walls.size(); i++) // recursion
     {
-        generate_rays_direction_(tx, rx, getMirrorWithWall(fake_rx, walls[i].fancy_vector), walls, rays_hitting, max_reflexion, counter);
+        generate_rays_direction_(tx, rx, getMirrorWithWall(fake_rx, walls[i].fancy_vector), walls, i, rays_hitting, max_reflexion, counter);
     }
+
 }
 
 void generate_ray_hitting_rx(vec2 tx, vec2 rx, std::vector<Wall> &walls, std::vector<Ray>& ray_hitting, int max_reflexion)
 {
     vector<Ray> _buffer;
 
-    compute_ray_zone(tx, rx, rx - tx, tx, ray_hitting, walls, 1.0f, 0, 0); // direct
+    compute_ray_zone(tx, rx, rx - tx, tx, ray_hitting, walls, 1.0f, 0, 2); // direct
 
-    generate_rays_direction_(tx, rx, rx, walls, ray_hitting, max_reflexion, 0);
+    generate_rays_direction_(tx, rx, rx, walls, -1, ray_hitting, max_reflexion, 0);
 }

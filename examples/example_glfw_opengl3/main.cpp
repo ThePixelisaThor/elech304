@@ -87,10 +87,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     }*/
 
     
-    float pos_x_tx = 80.f;
-    float pos_y_tx = -20.f;
+    float pos_x_tx = 9.f;
+    float pos_y_tx = 12.f;
 
-    float pos_x_rx = 26.f;
+    float pos_x_rx = 33.f;
     float pos_y_rx = -63.f;
 
     float buffer_pos_tx_x = 0;
@@ -146,6 +146,30 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_zones_rect, VAO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
 
     vec2 tx_zone(pos_x_tx * 10.f, pos_y_tx * 10.f);
+    vec2 rx_zone_test(26.f * 10.f, -63.f * 10.f);
+
+    std::vector<Ray> rays__;
+    generate_ray_hitting_rx(tx_zone, rx_zone_test, walls_obj, rays__, 2);
+
+    std::vector<Ray> rays___;
+    std::vector<Ray> buffer_test;
+    compute_ray(tx_zone, rx_zone_test, rx_zone_test - tx_zone, tx_zone, rays___, buffer_test, walls_obj, 1.0f, 0, 2);
+
+    generate_rays_direction(tx_zone, rx_zone_test, rx_zone_test, walls_obj, -1, rays___, 2, 0);
+
+    std::vector<Ray> buffer;
+    for (Ray r : rays__) {
+        
+        for (Ray rr : buffer) {
+            if (r.origin.x == rr.origin.x && r.origin.y == rr.origin.y) {
+
+                std::cout << " " << std::endl;
+            }
+        }
+        buffer.push_back(r);
+    }
+
+
 
     for (int x = 0; x < zone_count_x; x++) {
         for (int y = 0; y < zone_count_y; y++) {
@@ -164,7 +188,9 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             if (c.g < 0.) c.g = 0.f;
             */
 
-            Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
+            Color c = getColorForValue(rays__.size(), 0.f, 45.f);
+
+            // Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
 
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
                 vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
@@ -193,6 +219,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     std::vector<unsigned int> ray_cbo_buffer;
     std::vector<unsigned int> ray_vbo_buffer;
 
+    int show_vect = 0;
+
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
         glfwPollEvents();
@@ -220,6 +248,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::DragFloat("Cam x", &cam_x, 0.01f);
         ImGui::DragFloat("Cam y", &cam_y, 0.01f);
         ImGui::DragFloat("Cam z", &cam_z, 0.01f);
+        ImGui::DragInt("Show vectors", &show_vect);
         ImGui::Checkbox("Draw zones", &draw_zone);
         ImGui::Checkbox("Raytracing", &ray_tracing);
         ImGui::End();
@@ -284,8 +313,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             all_rays = {};
             // trajet direct
             std::vector<Ray> _buffer;
-            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, 1.0f, 0, 0);
-            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, all_rays, maxRef, 0);
+            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, 1.0f, 0, 2);
+            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, all_rays, maxRef, 0);
 
             ray_cbo_buffer = {};
             ray_vbo_buffer = {};
@@ -300,12 +329,15 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
                 ray_vbo_buffer.push_back(*VBO);
             }
 
+            std::cout << "test" << std::endl;
         }
         
-        for (int i = 0; i < ray_cbo_buffer.size(); i++) {
+        for (int i = max(0, show_vect - 20); i < min(ray_cbo_buffer.size(), show_vect); i++) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             draw_array(ray_vbo_buffer[i], ray_cbo_buffer[i]);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+            std::cout << " " << std::endl;
         } 
         // for (Ray r : all_rays) r.create_draw(); // c'est de la merde ça memory leak
         ray_count = ray_vbo_buffer.size();
