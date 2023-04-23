@@ -111,7 +111,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float buffer_pos_rx_y = 0;
 
     bool render_again = true; // temporary fix
-
+    bool d3 = false;
     // lines
     const int line_count = 50;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
@@ -194,19 +194,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     compute_ray(tx_zone, rx_zone_test, rx_zone_test - tx_zone, tx_zone, rays___, buffer_test, walls_obj, sequence, 1.0f, 0, 2);
 
     generate_rays_direction(tx_zone, rx_zone_test, rx_zone_test, walls_obj, -1, sequence, rays___, 2, 0);
-
-    std::vector<Ray> buffer;
-    for (Ray r : rays__) {
-        
-        for (Ray rr : buffer) {
-            if (r.origin.x == rr.origin.x && r.origin.y == rr.origin.y) {
-
-                std::cout << " " << std::endl;
-            }
-        }
-        buffer.push_back(r);
-    }
-
 
 
     for (int x = 0; x < zone_count_x; x++) {
@@ -304,6 +291,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::DragInt("Show vectors", &show_vect);
         ImGui::Checkbox("Draw zones", &draw_zone);
         ImGui::Checkbox("Raytracing", &ray_tracing);
+        ImGui::Checkbox("3D", &d3);
         ImGui::End();
 
         ImGui::Begin("Circle color");
@@ -344,11 +332,12 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         glm::mat4 Model = glm::mat4(1.0f);
         MVP = Projection * View * Model;
 
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        for (int i = 0; i < walls.size() * 6; i++)
-            draw_textured_rectangle(brick_texture, shader, shader_texture, VAO_rect[i], VBO_rect[i], EBO_rect[i]);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
+        if (d3) {
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            for (int i = 0; i < walls.size() * 6; i++)
+                draw_textured_rectangle(brick_texture, shader, shader_texture, VAO_rect[i], VBO_rect[i], EBO_rect[i]);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        }
         vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
         vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
 
