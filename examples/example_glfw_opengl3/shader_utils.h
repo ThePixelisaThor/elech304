@@ -17,4 +17,4 @@
 
 void add_shader(GLuint program, const char* shader_code, GLenum type);
 void create_shader(GLuint& shader, const char* shader_code);
-void create_shader(GLuint& shader);
+void create_shader(GLuint& shader, GLuint& shader_texture);

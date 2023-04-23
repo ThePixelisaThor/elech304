@@ -29,6 +29,9 @@
 #include "ex_7_1.h"
 #include "zone_tracing.h"
 
+#include "texture_utils.h"
+#include "camera.h"
+
 using json = nlohmann::json;
 using namespace glm;
 
@@ -38,9 +41,27 @@ const GLint HEIGHT = 1080;
 GLuint FBO;
 GLuint RBO;
 GLuint shader;
+GLuint shader_texture;
 
 glm::mat4 MVP = glm::mat4(1.0f);
 GLuint MatrixID = 0;
+GLuint MatrixID2 = 0;
+
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+void processInput(GLFWwindow* window);
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+float lastX = WIDTH / 2.0f;
+float lastY = HEIGHT / 2.0f;
+bool firstMouse = true;
+
+float deltaTime = 0.0f;	// Time between current frame and last frame
+float lastFrame = 0.0f; // Time of last frame
+
+bool mouse_movement = false;
+bool mouse_movement_buffer = false;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
@@ -50,7 +71,10 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
 
-    create_shader(shader);
+    glfwSetScrollCallback(mainWindow, scroll_callback);
+    glfwSetKeyCallback(mainWindow, key_callback);
+
+    create_shader(shader, shader_texture);
 
     // loading json
     std::ifstream file_plan("plan.json");
@@ -73,19 +97,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     unsigned int VBO_circle_rx[721], VAO_circle_rx[721], CBO_circle_rx[721];
     create_arrays(VBO_circle_tx, VAO_circle_tx, CBO_circle_tx, 721);
     create_arrays(VBO_circle_rx, VAO_circle_rx, CBO_circle_rx, 721);
-
-    // generate local zones
-    /*unsigned int VBO_zones[342], VAO_zones[342], CBO_zones[342];
-    create_arrays(VBO_zones, VAO_zones, CBO_zones, 342);
-
-    
-    for (int j = 0; j <= 140; j++) {
-        create_line(vec2(0.0, -j * 0.5 * 10.f), vec2(100.0 * 10.f, -j * 0.5 * 10.f), VBO_zones[j], VAO_zones[j], CBO_zones[j], YELLOW);
-    }
-    for (int i = 0; i <= 200; i++) {
-        create_line(vec2(i * 0.5 * 10.f, 0.0), vec2(i * 0.5 * 10.f, -70.0 * 10.f), VBO_zones[141 + i], VAO_zones[141 + i], CBO_zones[141 + i], YELLOW);
-    }*/
-
     
     float pos_x_tx = 9.f;
     float pos_y_tx = 12.f;
@@ -101,7 +112,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     bool render_again = true; // temporary fix
 
-    
     // lines
     const int line_count = 50;
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
@@ -135,6 +145,35 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
                         walls[i], materials_data[material]["depth"]));
     }
 
+    // 3D walls
+    unsigned int VBO_rect[600], VAO_rect[600], EBO_rect[600];
+    glGenVertexArrays(600, VAO_rect);
+    glGenBuffers(600, VBO_rect);
+    glGenBuffers(600, EBO_rect);
+
+    glUseProgram(shader_texture);
+    float height = 50.f; // 5 meters
+    for (int i = 0; i < walls.size(); i++) {
+        vec2 normalized = 10.f * glm::normalize(walls_obj[i].fancy_vector.n);
+        create_textured_cube(
+            vec3(walls_obj[i].fancy_vector.a + normalized, height),
+            vec3(walls_obj[i].fancy_vector.a - normalized, height),
+            vec3(walls_obj[i].fancy_vector.b - normalized, height),
+            vec3(walls_obj[i].fancy_vector.b + normalized, height),
+            vec3(walls_obj[i].fancy_vector.a + normalized, 0.f),
+            vec3(walls_obj[i].fancy_vector.a - normalized, 0.f),
+            vec3(walls_obj[i].fancy_vector.b - normalized, 0.f),
+            vec3(walls_obj[i].fancy_vector.b + normalized, 0.f),
+            &VBO_rect[6*i], &VAO_rect[6*i], &EBO_rect[6*i], WHITE);
+
+    }
+    unsigned int brick_texture;
+    load_texture(brick_texture, false, "bricks.jpg");
+
+    glUniform1i(glGetUniformLocation(shader_texture, "ourTexture"), 0);
+    glUseProgram(shader);
+
+
     // generate local zones
 
     const int zone_count_x = 20;
@@ -147,28 +186,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     vec2 tx_zone(pos_x_tx * 10.f, pos_y_tx * 10.f);
     vec2 rx_zone_test(26.f * 10.f, -63.f * 10.f);
-
-    std::vector<Ray> rays__;
-    generate_ray_hitting_rx(tx_zone, rx_zone_test, walls_obj, rays__, 2);
-
-    std::vector<Ray> rays___;
-    std::vector<Ray> buffer_test;
-    compute_ray(tx_zone, rx_zone_test, rx_zone_test - tx_zone, tx_zone, rays___, buffer_test, walls_obj, 1.0f, 0, 2);
-
-    generate_rays_direction(tx_zone, rx_zone_test, rx_zone_test, walls_obj, -1, rays___, 2, 0);
-
-    std::vector<Ray> buffer;
-    for (Ray r : rays__) {
-        
-        for (Ray rr : buffer) {
-            if (r.origin.x == rr.origin.x && r.origin.y == rr.origin.y) {
-
-                std::cout << " " << std::endl;
-            }
-        }
-        buffer.push_back(r);
-    }
-
 
 
     for (int x = 0; x < zone_count_x; x++) {
@@ -200,11 +217,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     // Get a handle for our "MVP" uniform
     MatrixID = glGetUniformLocation(shader, "MVP");
-
-    float zoom_factor = 2.f;
-    float cam_x = 0.3f;
-    float cam_y = 0.03f;
-    float cam_z = 1.890f;
+    MatrixID2 = glGetUniformLocation(shader_texture, "MVP");
 
     bool draw_zone = false;
     bool ray_tracing = false;
@@ -221,18 +234,40 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     int show_vect = 0;
 
+    glEnable(GL_DEPTH_TEST);
+
+    GLFWcursorposfun previous_callback;
+
     while (!glfwWindowShouldClose(mainWindow)) // main loop
     {
+        if (mouse_movement_buffer != mouse_movement) {
+            glfwSetInputMode(mainWindow, GLFW_CURSOR, (mouse_movement_buffer) ? GLFW_CURSOR_DISABLED : GLFW_CURSOR_NORMAL);
+            if (mouse_movement_buffer) {
+                previous_callback = glfwSetCursorPosCallback(mainWindow, mouse_callback);
+            }
+            else {
+                glfwSetCursorPosCallback(mainWindow, previous_callback);
+            }
+            mouse_movement = mouse_movement_buffer;
+        }
+
         glfwPollEvents();
+        processInput(mainWindow);
+
+        float currentFrame = glfwGetTime();
+        deltaTime = currentFrame - lastFrame;
+        lastFrame = currentFrame;
 
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
         glClearColor(0.2f, 0.2f, 0.2f, 1.f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shader);
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
+        glUseProgram(shader_texture);
+        glUniformMatrix4fv(MatrixID2, 1, GL_FALSE, &MVP[0][0]);
+        glUseProgram(shader);
         ImGui::NewFrame();
 
         // GUI code goes here
@@ -244,10 +279,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::SeparatorText("RX");
         ImGui::DragFloat("Value pos_x_rx", &pos_x_rx);
         ImGui::DragFloat("Value pos_y_rx", &pos_y_rx);
-        ImGui::SeparatorText("CAM");
-        ImGui::DragFloat("Cam x", &cam_x, 0.01f);
-        ImGui::DragFloat("Cam y", &cam_y, 0.01f);
-        ImGui::DragFloat("Cam z", &cam_z, 0.01f);
         ImGui::DragInt("Show vectors", &show_vect);
         ImGui::Checkbox("Draw zones", &draw_zone);
         ImGui::Checkbox("Raytracing", &ray_tracing);
@@ -281,30 +312,37 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             ray_tracing_buffer = ray_tracing;
         }
 
-        glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float) bufferWidth / (float) bufferHeight, 0.01f, 1000.0f);
+        // pass projection matrix to shader (note that in this case it could change every frame)
+        glm::mat4 Projection = glm::perspective(glm::radians(camera.Zoom), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
 
-        // Camera matrix
-        glm::mat4 View = glm::lookAt(
-            glm::vec3(cam_x, cam_y, cam_z), // Camera is at
-            glm::vec3(cam_x, cam_y, cam_z - 1.), // and looks at the origin
-            glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
-        );
+        // camera/view transformation
+        glm::mat4 View = camera.GetViewMatrix();
+
+
         glm::mat4 Model = glm::mat4(1.0f);
         MVP = Projection * View * Model;
 
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        for (int i = 0; i < walls.size() * 6; i++)
+            draw_textured_rectangle(brick_texture, shader, shader_texture, VAO_rect[i], VBO_rect[i], EBO_rect[i]);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+        vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
+        vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
+
+        
         if (draw_zone) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             draw_arrays_rect(VBO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
             //drawing local zones
-            /*glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            draw_arrays(VBO_zones, CBO_zones, 342);
-            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);*/
+            // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            // draw_arrays(VBO_zones, CBO_zones, 342);
+            // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
         // rays
         
-        vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
-        vec2 center_rx(pos_x_rx * 10.f, pos_y_rx * 10.f);
+       
 
         int maxRef = 2;
         if (image_method && render_again)
@@ -401,12 +439,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             draw_arrays(VBO_lines_rr, CBO_lines_rr, line_count);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
+        
 
         // drawing walls
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         draw_arrays(VBO_walls, CBO_walls, walls.size());
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
+        
         // creating circle
         float radius = 7.f;
 
@@ -443,7 +483,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // drawing circle
         draw_arrays(VBO_circle_tx, CBO_circle_tx, 721);
         draw_arrays(VBO_circle_rx, CBO_circle_rx, 721);
-
+        
+        
         render_again = false;
 
         render_end(mainWindow, io);
@@ -452,4 +493,52 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     terminate(mainWindow);
 
     return 0;
+}
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
+        mouse_movement_buffer = !mouse_movement_buffer;
+}
+
+void processInput(GLFWwindow* window) {
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+        camera.ProcessKeyboard(FORWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        camera.ProcessKeyboard(LEFT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        camera.ProcessKeyboard(RIGHT, deltaTime);
+}
+
+void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+{
+    if (!mouse_movement)
+        return;
+    float xpos = static_cast<float>(xposIn);
+    float ypos = static_cast<float>(yposIn);
+
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll(static_cast<float>(yoffset));
 }

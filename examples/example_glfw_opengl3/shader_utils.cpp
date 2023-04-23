@@ -1,27 +1,49 @@
 #include "shader_utils.h"
 
 const char* vertex_shader_code_resize_1000x = R"*(
-#version 330
+#version 330 core
 layout (location = 0) in vec3 pos;
-layout(location = 1) in vec3 vertexColor;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTexCoord;
 
-out vec3 fragmentColor;
-uniform mat4 MVP; // transformation matrix
+out vec3 ourColor;
+out vec2 TexCoord;
+
+uniform mat4 MVP;
+
 void main()
 {
-	gl_Position = MVP * vec4(0.001*pos.x - 0.5f, 0.001*pos.y + 0.5f, 0.5*pos.z, 1.0);
-    fragmentColor = vertexColor;
+	gl_Position = MVP * vec4(0.001*pos.x - 0.5f, 0.001*pos.y + 0.5f, 0.001*pos.z, 1.0);
+	ourColor = aColor;
+	TexCoord = vec2(aTexCoord.x, aTexCoord.y);
 }
 )*";
 
 const char* fragment_shader_code = R"*(
-#version 330
-in vec3 fragmentColor;
-out vec3 color;
+#version 330 core
+in vec3 ourColor;
+
+out vec4 FragColor;
+
 void main()
 {
-	// color = vec3(1.f, 1.f, 1.f);
-    color = fragmentColor;
+    FragColor = vec4(ourColor, 1.0);
+}
+)*";
+
+const char* fragment_texture_shader_code = R"*(
+#version 330 core
+out vec4 FragColor;
+
+in vec3 ourColor;
+in vec2 TexCoord;
+
+// texture samplers
+uniform sampler2D ourTexture;
+
+void main()
+{
+	FragColor = texture(ourTexture, TexCoord) * vec4(ourColor, 1.f);
 }
 )*";
 
@@ -81,6 +103,7 @@ void create_shader(GLuint& shader, const char* shader_code)
     }
 }
 
-void create_shader(GLuint& shader) {
+void create_shader(GLuint& shader, GLuint& shader_texture) {
     create_shader(shader, fragment_shader_code);
+    create_shader(shader_texture, fragment_texture_shader_code);
 }

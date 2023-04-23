@@ -173,6 +173,7 @@
     <ClCompile Include="raytracing.cpp" />
     <ClCompile Include="render_utils.cpp" />
     <ClCompile Include="shader_utils.cpp" />
+    <ClCompile Include="texture_utils.cpp" />
     <ClCompile Include="vector_math.cpp" />
     <ClCompile Include="wall.cpp" />
     <ClCompile Include="zone_tracing.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="..\..\backends\imgui_impl_opengl3.h" />
     <ClInclude Include="..\..\backends\imgui_impl_opengl3_loader.h" />
     <ClInclude Include="boilerplate.h" />
+    <ClInclude Include="camera.h" />
     <ClInclude Include="coefficients.h" />
     <ClInclude Include="color.h" />
     <ClInclude Include="ex_7_1.h" />
@@ -194,6 +196,8 @@
     <ClInclude Include="raytracing.h" />
     <ClInclude Include="render_utils.h" />
     <ClInclude Include="shader_utils.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="texture_utils.h" />
     <ClInclude Include="vector_math.h" />
     <ClInclude Include="wall.h" />
     <ClInclude Include="zone_tracing.h" />
@@ -207,6 +211,9 @@
     <None Include="plan_test.json" />
     <None Include="plan__.json" />
     <None Include="plan.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="bricks.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

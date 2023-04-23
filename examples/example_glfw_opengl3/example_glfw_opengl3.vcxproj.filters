@@ -26,6 +26,9 @@
     <Filter Include="sources\src\tests">
       <UniqueIdentifier>{a5bba494-817b-4711-b720-b3d87eb8b1fa}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\src\textures">
+      <UniqueIdentifier>{84bb94ae-4b37-4ca7-8d60-f76379fda8ab}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -88,6 +91,9 @@
     <ClCompile Include="color.cpp">
       <Filter>sources\src\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="texture_utils.cpp">
+      <Filter>sources\src\textures</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -147,6 +153,15 @@
     <ClInclude Include="zone_tracing.h">
       <Filter>sources\src</Filter>
     </ClInclude>
+    <ClInclude Include="stb_image.h">
+      <Filter>sources\src\textures</Filter>
+    </ClInclude>
+    <ClInclude Include="texture_utils.h">
+      <Filter>sources\src\textures</Filter>
+    </ClInclude>
+    <ClInclude Include="camera.h">
+      <Filter>sources\src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natvis">
@@ -173,5 +188,10 @@
     <None Include="plan_test.json">
       <Filter>sources\assets</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="bricks.jpg">
+      <Filter>sources\assets</Filter>
+    </Image>
   </ItemGroup>
 </Project>
