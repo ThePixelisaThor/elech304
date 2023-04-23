@@ -136,3 +136,40 @@ void generate_ray_hitting_rx(vec2 tx, vec2 rx, std::vector<Wall> &walls, std::ve
 
     generate_rays_direction_(tx, rx, rx, walls, -1, ray_hitting, max_reflexion, 0);
 }
+
+vec2 getIntersection(vec2 direction, vec2 origin, vector<Wall> walls, Wall& wall_, bool& found, float min_distance) {
+    float t = 0;
+    float s = 0;
+    // calculating intersection
+    vec2 best_intersection(-1000, -1000);
+    Wall best_wall = walls[0];
+    double distance = 0;
+
+    for (int w = 0; w < walls.size(); w++) {
+        wall_ = walls[w];
+        FancyVector wall = wall_.fancy_vector;
+        if (wall.u.y == 0) {
+            t = (wall.a.y - origin.y) / direction.y;
+            s = (origin.x + direction.x * t - wall.a.x) / wall.u.x;
+        }
+        else {
+            t = wall.u.y / (direction.x * wall.u.y - wall.u.x * direction.y) * (wall.a.x - origin.x + wall.u.x * (origin.y - wall.a.y) / wall.u.y);
+            s = (origin.y + direction.y * t - wall.a.y) / wall.u.y;
+        }
+
+        if (t < 0.01 || t > 100000 || s < 0.01 || s > 1) continue;
+
+        vec2 intersection = vec2(origin.x + t * direction.x, origin.y + t * direction.y);
+        distance = length(intersection - origin);
+
+        if (distance < min_distance) {
+            min_distance = distance;
+            best_intersection = intersection;
+            best_wall = wall_;
+        }
+    }
+
+    if (best_intersection.x == -1000 && best_intersection.y == -1000) found = false;
+    wall_ = best_wall;
+    return best_intersection;
+}
