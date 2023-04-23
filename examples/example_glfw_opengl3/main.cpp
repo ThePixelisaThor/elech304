@@ -101,7 +101,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float pos_x_tx = 9.f;
     float pos_y_tx = 12.f;
 
-    float pos_x_rx = 33.f;
+    float pos_x_rx = 27.f;
     float pos_y_rx = -63.f;
 
     float buffer_pos_tx_x = 0;
@@ -188,6 +188,27 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     vec2 rx_zone_test(26.f * 10.f, -63.f * 10.f);
 
 
+    std::vector<Ray> rays___;
+    std::vector<Ray> buffer_test;
+    std::vector<int> sequence;
+    compute_ray(tx_zone, rx_zone_test, rx_zone_test - tx_zone, tx_zone, rays___, buffer_test, walls_obj, sequence, 1.0f, 0, 2);
+
+    generate_rays_direction(tx_zone, rx_zone_test, rx_zone_test, walls_obj, -1, sequence, rays___, 2, 0);
+
+    std::vector<Ray> buffer;
+    for (Ray r : rays__) {
+        
+        for (Ray rr : buffer) {
+            if (r.origin.x == rr.origin.x && r.origin.y == rr.origin.y) {
+
+                std::cout << " " << std::endl;
+            }
+        }
+        buffer.push_back(r);
+    }
+
+
+
     for (int x = 0; x < zone_count_x; x++) {
         for (int y = 0; y < zone_count_y; y++) {
             // les problèmes
@@ -229,6 +250,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float buffer_circle_color[] = { 0.f, 0.f, 1.f };
 
     std::vector<Ray> all_rays;
+    std::vector<int> seq;
     std::vector<unsigned int> ray_cbo_buffer;
     std::vector<unsigned int> ray_vbo_buffer;
 
@@ -351,8 +373,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             all_rays = {};
             // trajet direct
             std::vector<Ray> _buffer;
-            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, 1.0f, 0, 2);
-            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, all_rays, maxRef, 0);
+            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, seq, 1.0f, 0, 2);
+            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, seq, all_rays, maxRef, 0);
 
             ray_cbo_buffer = {};
             ray_vbo_buffer = {};
