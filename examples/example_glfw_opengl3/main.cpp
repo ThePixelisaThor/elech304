@@ -66,7 +66,7 @@ bool alt_key = false;
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
     // compute_everything();
-    compute_everything_8();
+    // compute_everything_8();
 
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
@@ -98,11 +98,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_circle_tx, VAO_circle_tx, CBO_circle_tx, 721);
     create_arrays(VBO_circle_rx, VAO_circle_rx, CBO_circle_rx, 721);
     
-    float pos_x_tx = 9.f;
-    float pos_y_tx = 12.f;
+    float pos_x_tx = 80.f;
+    float pos_y_tx = -20.f;
 
-    float pos_x_rx = 27.f;
-    float pos_y_rx = -63.f;
+    float pos_x_rx = 40.f;
+    float pos_y_rx = -30.f;
 
     float buffer_pos_tx_x = 0;
     float buffer_pos_tx_y = 0;
@@ -141,7 +141,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     std::vector<Wall> walls_obj;
     for (int i = 0; i < walls.size(); i++) {
         int material = walls_data[i]["material_id"] - 1;
-        walls_obj.push_back(Wall(materials_data[material]["e_r"], materials_data[material]["sigma"], 26.f * pow(10, 9) * 2.f * 3.14159265f,
+        walls_obj.push_back(Wall(i, materials_data[material]["e_r"], materials_data[material]["sigma"], 26.f * pow(10, 9) * 2.f * 3.14159265f,
                         walls[i], materials_data[material]["depth"]));
     }
 
@@ -184,17 +184,12 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     GLuint* CBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
     create_arrays(VBO_zones_rect, VAO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
 
+    GLuint* VBO_zones_rect_p = new GLuint[zone_count_x * zone_count_y];
+    GLuint* VAO_zones_rect_p = new GLuint[zone_count_x * zone_count_y];
+    GLuint* CBO_zones_rect_p = new GLuint[zone_count_x * zone_count_y];
+    create_arrays(VBO_zones_rect_p, VAO_zones_rect_p, CBO_zones_rect_p, zone_count_x * zone_count_y);
+
     vec2 tx_zone(pos_x_tx * 10.f, pos_y_tx * 10.f);
-    vec2 rx_zone_test(26.f * 10.f, -63.f * 10.f);
-
-
-    std::vector<Ray> rays___;
-    std::vector<Ray> buffer_test;
-    std::vector<int> sequence;
-    compute_ray(tx_zone, rx_zone_test, rx_zone_test - tx_zone, tx_zone, rays___, buffer_test, walls_obj, sequence, 1.0f, 0, 2);
-
-    generate_rays_direction(tx_zone, rx_zone_test, rx_zone_test, walls_obj, -1, sequence, rays___, 2, 0);
-
 
     for (int x = 0; x < zone_count_x; x++) {
         for (int y = 0; y < zone_count_y; y++) {
@@ -204,22 +199,27 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             std::vector<Ray> rays__;
             generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 2);
 
-            /*
+            
             float power = compute_energy(rays__); // in db
             float log_power = log(power) / log(10); // c'est en base 2
-            Color c{(12.f + log_power) / 4.f, (12.f + log_power) / 4.f, 0.f};
 
-            if (c.r < 0.) c.r = 0.f;
-            if (c.g < 0.) c.g = 0.f;
-            */
+            // Color c{(12.f + log_power) / 4.f, (12.f + log_power) / 4.f, 0.f};
 
-            Color c = getColorForValue(rays__.size(), 0.f, 45.f);
+            // if (c.r < 0.) c.r = 0.f;
+            // if (c.g < 0.) c.g = 0.f;
+            
 
+            Color c_p = getColorForValue(log_power, -12.f, -4.f);
+            Color c = getColorForValue(rays__.size(), 0.f, 50.f);
             // Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
 
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
                 vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
                 VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y], c);
+
+            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
+                vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
+                VBO_zones_rect_p[x * zone_count_y + y], VAO_zones_rect_p[x * zone_count_y + y], CBO_zones_rect_p[x * zone_count_y + y], c_p);
         }
     }
 
@@ -242,6 +242,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     std::vector<unsigned int> ray_vbo_buffer;
 
     int show_vect = 0;
+    bool power = false;
 
     glEnable(GL_DEPTH_TEST);
 
@@ -291,6 +292,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::DragInt("Show vectors", &show_vect);
         ImGui::Checkbox("Draw zones", &draw_zone);
         ImGui::Checkbox("Raytracing", &ray_tracing);
+        ImGui::Checkbox("Power", &power);
         ImGui::Checkbox("3D", &d3);
         ImGui::End();
 
@@ -344,17 +346,15 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         
         if (draw_zone) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            draw_arrays_rect(VBO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
-            //drawing local zones
-            // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            // draw_arrays(VBO_zones, CBO_zones, 342);
-            // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            if (!power)
+                draw_arrays_rect(VBO_zones_rect, CBO_zones_rect, zone_count_x * zone_count_y);
+            else
+                draw_arrays_rect(VBO_zones_rect_p, CBO_zones_rect_p, zone_count_x * zone_count_y);
         }
 
         // rays
         
        
-
         int maxRef = 2;
         if (image_method && render_again)
         {
@@ -362,8 +362,16 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             all_rays = {};
             // trajet direct
             std::vector<Ray> _buffer;
-            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, seq, 1.0f, 0, 2);
-            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, seq, all_rays, maxRef, 0);
+
+            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, std::set<int>(), 1.0f, 0, 2);
+            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, all_rays, std::set<int>(), maxRef, 0);
+
+            /*
+            std::vector<Ray> rays_rx;
+
+            generate_ray_hitting_rx(center_tx, center_rx, walls_obj, rays_rx, 2);
+
+            all_rays = rays_rx; */
 
             ray_cbo_buffer = {};
             ray_vbo_buffer = {};

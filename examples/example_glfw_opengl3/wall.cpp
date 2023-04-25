@@ -9,7 +9,8 @@ using namespace glm;
 #include <vector>
 #include <complex>
 
-Wall::Wall(float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth) {
+Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth) {
+    id = _id;
     relative_perm = _relative_perm;
     conductivity = _conductivity;
     fancy_vector = _fancy_vector;

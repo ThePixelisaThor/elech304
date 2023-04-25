@@ -5,6 +5,7 @@
 
 class Wall {
 public:
+    int id;
     float relative_perm;
     float conductivity;
     float pulsation;
@@ -15,7 +16,7 @@ public:
     FancyVector fancy_vector;
     float depth;
 
-    Wall(float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth);
+    Wall(int id, float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth);
 
     void set_impedance(float pulsation);
 
