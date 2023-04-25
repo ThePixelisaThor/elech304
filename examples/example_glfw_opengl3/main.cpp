@@ -49,12 +49,11 @@ GLuint MatrixID2 = 0;
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 void processInput(GLFWwindow* window);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 2.0f));
 float lastX = WIDTH / 2.0f;
-float lastY = HEIGHT / 2.0f;
+float lastY = -HEIGHT / 2.0f;
 bool firstMouse = true;
 
 float deltaTime = 0.0f;	// Time between current frame and last frame
@@ -62,17 +61,18 @@ float lastFrame = 0.0f; // Time of last frame
 
 bool mouse_movement = false;
 bool mouse_movement_buffer = false;
+bool alt_key = false;
 
 int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 {
     // compute_everything();
-    // compute_everything_8();
+    compute_everything_8();
 
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
 
     glfwSetScrollCallback(mainWindow, scroll_callback);
-    glfwSetKeyCallback(mainWindow, key_callback);
+    // glfwSetKeyCallback(mainWindow, key_callback);
 
     create_shader(shader, shader_texture);
 
@@ -506,12 +506,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     return 0;
 }
 
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
-{
-    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE)
-        mouse_movement_buffer = !mouse_movement_buffer;
-}
-
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -524,12 +518,20 @@ void processInput(GLFWwindow* window) {
         camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera.ProcessKeyboard(RIGHT, deltaTime);
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS && !alt_key) {
+        alt_key = true;
+        mouse_movement_buffer = !mouse_movement_buffer;
+    }
+    if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_RELEASE && alt_key) {
+        alt_key = false;
+    }
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 {
     if (!mouse_movement)
         return;
+
     float xpos = static_cast<float>(xposIn);
     float ypos = static_cast<float>(yposIn);
 

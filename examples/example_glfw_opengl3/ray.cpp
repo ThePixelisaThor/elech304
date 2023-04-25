@@ -79,8 +79,13 @@ float compute_total_transmission(float incident_angle_cos, coefficients c, Wall 
     std::complex<float> two{ 2, 0 }; // 2 + 0j
     std::complex<float> j{ 0, 1 }; // 0 + 1j
 
+    /*
     std::complex<float> transmission_coef_after = c.transmission * c.transmission_reverse * exp(-wall.gamma * transmitted_depth);
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * wall.beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
+    */
+    std::complex<float> transmission_coef_after = (one - c.reflection * c.reflection) * exp(-wall.gamma * transmitted_depth);
+    float beta = wall.pulsation / (3.f * pow(10, 8));
+    transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
 
     std::complex<double> transmission_coef_squared = pow(transmission_coef_after, 2);
 

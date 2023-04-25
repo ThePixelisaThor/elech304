@@ -7,6 +7,7 @@ class Wall {
 public:
     float relative_perm;
     float conductivity;
+    float pulsation;
     std::complex<float> gamma;
     float alpha;
     float beta;

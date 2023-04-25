@@ -28,9 +28,10 @@ void compute_everything_8() {
     // ex 8
     coefficients c = compute_reflection_coefficients(0.9648f, Z0, w);
 
-    float total_transmission = compute_total_transmission(1.f, c, w);
+    float total_transmission = compute_total_transmission(0.9648f, c, w);
     // la valeur de transmission_coef_after est très proche de celle du corrigé (0.67 + 0.25i) vs (0.69 + 0.26i)
     // donc je suppose que ce sont les arrondis ?
+    // j'ai rien dit c'est fixé
 
 
 

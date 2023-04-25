@@ -16,6 +16,7 @@ Wall::Wall(float _relative_perm, float _conductivity, float _pulsation, FancyVec
     depth = _depth;
     set_impedance(_pulsation);
     set_gamma(_pulsation);
+    pulsation = _pulsation;
 }
 
 void Wall::set_impedance(float pulsation) {
