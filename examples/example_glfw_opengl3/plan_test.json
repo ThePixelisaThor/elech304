@@ -1,44 +1,58 @@
 [
     {
-        "material_id": 1,
-        "point_ax": 100.0,
-        "point_ay": -70.0,
-        "point_bx": 75.0,
-        "point_by": -70.0
-    },
-    {
-        "material_id": 1,
-        "point_ax": 75.0,
-        "point_ay": -45.0,
-        "point_bx": 75.0,
-        "point_by": -70.0
-    },
-    {
-        "material_id": 1,
-        "point_ax": 75.0,
-        "point_ay": -45.0,
+        "material_id": 2,
+        "point_ax": 0.0,
+        "point_ay": 0.0,
         "point_bx": 0.0,
         "point_by": -45.0
     },
     {
         "material_id": 2,
-        "point_ax": 0.0,
-        "point_ay": -45.0,
-        "point_bx": 0.0,
-        "point_by": 0.0
-    },
-    {
-        "material_id": 2,
-        "point_ax": 0.0,
-        "point_ay": 0.0,
-        "point_bx": 100.0,
-        "point_by": 0.0
-    },
-    {
-        "material_id": 2,
         "point_ax": 100.0,
         "point_ay": 0.0,
         "point_bx": 100.0,
         "point_by": -70.0
+    },
+    {
+        "material_id": 2,
+        "point_ax": 0.0,
+        "point_ay": 0.0,
+        "point_bx": 100.0,
+        "point_by": 0.0
+    },
+    {
+        "material_id": 1,
+        "point_ax": 0.0,
+        "point_ay": -45.0,
+        "point_bx": 75.0,
+        "point_by": -45.0
+    },
+    {
+        "material_id": 3,
+        "point_ax": 35.0,
+        "point_ay": -20.0,
+        "point_bx": 40.0,
+        "point_by": -15.0
+    },
+    {
+        "material_id": 3,
+        "point_ax": 50.0,
+        "point_ay": -15.0,
+        "point_bx": 55.0,
+        "point_by": -20.0
+    },
+    {
+        "material_id": 3,
+        "point_ax": 35.0,
+        "point_ay": -30.0,
+        "point_bx": 40.0,
+        "point_by": -35.0
+    },
+    {
+        "material_id": 3,
+        "point_ax": 50.0,
+        "point_ay": -35.0,
+        "point_bx": 55.0,
+        "point_by": -30.0
     }
 ]

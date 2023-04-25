@@ -42,11 +42,18 @@ vec2 getMirrorWithWall(vec2 point, FancyVector wall) {
     return result;
 }
 
-void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, vector<Wall> walls, Wall wall, vector<Ray>& all_rays, vector<Ray>& buffer, set<int> &walls_to_reflect, float start_energy, float total_distance, int reflexion_left) {
+void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, vector<Wall> walls, Wall wall, vector<Ray>& all_rays, vector<Ray>& buffer, vector<int> &walls_to_reflect, float start_energy, float total_distance, int reflexion_left, int max_reflexion) {
     // when a ray hits a wall, two rays are created
     vec2 normalized_direction = glm::normalize(direction_before);
 
     float incident_cos = abs(glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction)); // pour que l'angle soit entre -90 et 90
+
+    if (walls_to_reflect.size() == 2) {
+        if (walls_to_reflect[0] == 2 && walls_to_reflect[1] == 16) {
+
+            cout << " ";
+        }
+    }
 
     // reflected ray
     complex<float> air_impedance = compute_impedance(1.f, 0, 1);
@@ -59,22 +66,24 @@ void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, 
         cout << "problem" << endl;
     }
 
-    if (reflexion_left != 0 && walls_to_reflect.find(wall.id) != walls_to_reflect.end())
-        compute_ray(tx, rx, reflection_vector, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * reflection_coef, total_distance, reflexion_left - 1);
-
-    // transmitted ray
     float transmission = compute_total_transmission(incident_cos, cs, wall);
-    compute_ray(tx, rx, direction_before, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * transmission, total_distance, reflexion_left);
+
+    if (reflexion_left != 0 && walls_to_reflect[reflexion_left - 1] == wall.id) {
+            compute_ray(tx, rx, reflection_vector, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * reflection_coef, total_distance, reflexion_left - 1, max_reflexion);
+    }
+    else
+        compute_ray(tx, rx, direction_before, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * transmission, total_distance, reflexion_left, max_reflexion);
 }
 
-void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>& all_rays, vector<Ray>& buffer, vector<Wall> walls, set<int>& walls_to_reflect, float start_energy, float total_distance, int reflexion_left) {
+void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>& all_rays, vector<Ray>& buffer, vector<Wall> walls, vector<int>& walls_to_reflect, float start_energy, float total_distance, int reflexion_left, int max_reflexion) {
     if (reflexion_left == -1) return;
     // is hitting RX
     vec2 direction_to_rx = normalize(rx - ray_origin);
     vec2 direction_normalized = normalize(direction);
 
     if (direction_normalized.x < direction_to_rx.x + 0.000001 && direction_normalized.x > direction_to_rx.x - 0.000001 &&
-        direction_normalized.y < direction_to_rx.y + 0.000001 && direction_normalized.y > direction_to_rx.y - 0.000001) {
+        direction_normalized.y < direction_to_rx.y + 0.000001 && direction_normalized.y > direction_to_rx.y - 0.000001 &&
+        reflexion_left == 0) {
         float distance_to_rx = length(rx - ray_origin);
         // a wall could be between the ray reflex and RX
         bool found_wall_intersect_before_rx = true;
@@ -85,7 +94,7 @@ void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>&
         if (found_wall_intersect_before_rx) {
             vector<Ray> buffer2(buffer);
             buffer2.push_back(Ray(ray_origin, hit_point, start_energy, total_distance + length(ray_origin - hit_point)));
-            return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, buffer2, walls_to_reflect, start_energy, total_distance, reflexion_left);
+            return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, buffer2, walls_to_reflect, start_energy, total_distance, reflexion_left, max_reflexion);
         }
 
         buffer.push_back(Ray(ray_origin, rx, start_energy, total_distance + distance_to_rx));
@@ -105,25 +114,42 @@ void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>&
         vector<Ray> buffer2(buffer);
         buffer2.push_back(Ray(ray_origin, hit_point, start_energy, total_distance + length(hit_point - ray_origin)));
         // copies the vector
-        return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, buffer2, walls_to_reflect, start_energy, total_distance, reflexion_left);
+        return generate_new_rays(tx, rx, hit_point, direction, walls, best_wall, all_rays, buffer2, walls_to_reflect, start_energy, total_distance, reflexion_left, max_reflexion);
     }
 }
 
-void generate_rays_direction(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> walls, int previous, vector<Ray>& all_rays, set<int> walls_to_reflect, int max_reflexion, int counter) {
+void generate_rays_direction(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> walls, int previous, vector<Ray>& all_rays, vector<int> walls_to_reflect, vector<vec2>& fake_rx_done, int max_reflexion, int counter) {
     counter++;
 
-    for (int i = previous + 1; i < walls.size(); i++)
+    for (int i = 0; i < walls.size(); i++)
     {
-        set<int> wall_buffer(walls_to_reflect);
-        wall_buffer.insert(i);
+        /*
+        if (walls_to_reflect.find(i) != walls_to_reflect.end())
+            continue; */
+        if (i == previous)
+            continue;
+
+        vector<int> wall_buffer(walls_to_reflect);
+        wall_buffer.push_back(i);
 
         vec2 mirror = getMirrorWithWall(fake_rx, walls[i].fancy_vector);
 
-        vector<Ray> buffer;
-        compute_ray(tx, rx, mirror - tx, tx, all_rays, buffer, walls, wall_buffer, 1.0f, 0.f, max_reflexion - counter + 2);
+        if (mirror != rx) {
+            vector<Ray> buffer;
+            compute_ray(tx, rx, mirror - tx, tx, all_rays, buffer, walls, wall_buffer, 1.0f, 0.f, counter, max_reflexion);
+        }
+
+        /*
+        if (find(fake_rx_done.begin(), fake_rx_done.end(), mirror) == fake_rx_done.end()) {// also contains rx, which happens with walls 7 and 8 for instance
+
+            fake_rx_done.push_back(mirror);
+
+            vector<Ray> buffer;
+            compute_ray(tx, rx, mirror - tx, tx, all_rays, buffer, walls, wall_buffer, 1.0f, 0.f, counter, max_reflexion);
+        } */
 
         if (counter == max_reflexion) continue;
-        generate_rays_direction(tx, rx, mirror, walls, i, all_rays, wall_buffer, max_reflexion, counter);
+        generate_rays_direction(tx, rx, mirror, walls, i, all_rays, wall_buffer, fake_rx_done, max_reflexion, counter);
     }
 }
 

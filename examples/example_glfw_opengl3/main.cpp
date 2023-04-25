@@ -101,8 +101,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float pos_x_tx = 80.f;
     float pos_y_tx = -20.f;
 
-    float pos_x_rx = 40.f;
-    float pos_y_rx = -30.f;
+    float pos_x_rx = 21.f;
+    float pos_y_rx = -3.f;
 
     float buffer_pos_tx_x = 0;
     float buffer_pos_tx_y = 0;
@@ -176,8 +176,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     // generate local zones
 
-    const int zone_count_x = 20;
-    const int zone_count_y = 14;
+    const int zone_count_x = 200;
+    const int zone_count_y = 140;
 
     GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
     GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
@@ -197,6 +197,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             vec2 rx_zone((x + 0.5f) * 1000.f / zone_count_x, -(y + 0.5) * 700.f / zone_count_y);
 
             std::vector<Ray> rays__;
+
             generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 2);
 
             
@@ -233,6 +234,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     bool image_method = true;
 
     int ray_count = 0;
+    int ray_rx_count = 0;
     float circle_color[] = { 0.f, 0.f, 1.f };
     float buffer_circle_color[] = { 0.f, 0.f, 1.f };
 
@@ -303,6 +305,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::Begin("Metrics");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("Ray count : %d", ray_count);
+        ImGui::Text("Ray count hitting rx : %d", ray_rx_count);
 
         ImGui::End();
 
@@ -358,20 +361,21 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         int maxRef = 2;
         if (image_method && render_again)
         {
-
             all_rays = {};
             // trajet direct
             std::vector<Ray> _buffer;
 
-            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, std::set<int>(), 1.0f, 0, 2);
-            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, all_rays, std::set<int>(), maxRef, 0);
+            compute_ray(center_tx, center_rx, center_rx - center_tx, center_tx, all_rays, _buffer, walls_obj, std::vector<int>(), 1.0f, 0, 0, 0);
+            std::vector<vec2> only_rx;
+            only_rx.push_back(center_rx);
+            generate_rays_direction(center_tx, center_rx, center_rx, walls_obj, -1, all_rays, std::vector<int>(), only_rx, maxRef, 0);
 
-            /*
             std::vector<Ray> rays_rx;
 
             generate_ray_hitting_rx(center_tx, center_rx, walls_obj, rays_rx, 2);
+            ray_rx_count = rays_rx.size();
 
-            all_rays = rays_rx; */
+            // all_rays = rays_rx;
 
             ray_cbo_buffer = {};
             ray_vbo_buffer = {};
