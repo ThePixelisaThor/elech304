@@ -1,32 +1,42 @@
 #include "color.h"
 
-Color getColorForValue(float value, float minValue, float maxValue) {
-    if (value < minValue) {
-        // Return a default color if the value is outside the range
-        return BLACK; // Gray color
+Color getGradientColor(float intensity, float min_intensity, float max_intensity) {
+    Color c;
+
+    float intensity_deg = 300.f - (intensity - min_intensity) / (max_intensity - min_intensity) * 300.f;
+
+    // red
+    if (intensity_deg < 0.f) {
+        c = WHITE;
     }
-
-    if (value > maxValue) {
-        return WHITE;
+    else if (intensity_deg >= 0.f && intensity_deg < 60.f) {
+        c.r = 1.0f;
+        c.g = intensity_deg / 60.f;
+        c.b = 0.f;
     }
-
-    // Calculate the value's position within the range [minValue, maxValue]
-    float range = maxValue - minValue;
-    float valuePosition = (value - minValue) / range;
-
-    // Calculate the RGB components of the color based on the value's position
-    int red, green, blue;
-    if (valuePosition < 0.5f) {
-        red = 0;
-        green = 255 * (valuePosition / 0.5f);
-        blue = 255 - green;
+    else if (intensity_deg >= 60.f && intensity_deg < 120.f) {
+        c.r = (120.f - intensity_deg) / 60.f;
+        c.g = 1.0f;
+        c.b = 0.f;
+    }
+    else if (intensity_deg >= 120.f && intensity_deg < 180.f) {
+        c.r = 0.f;
+        c.g = 1.f;
+        c.b = (intensity_deg - 120.f) / 60.f;
+    }
+    else if (intensity_deg >= 180.f && intensity_deg < 240.f) {
+        c.r = 0.f;
+        c.g = (240.f - intensity_deg) / 60.f;
+        c.b = 1.f;
+    }
+    else if (intensity_deg >= 240.f && intensity_deg <= 300.f) {
+        c.r = (intensity - 240.f) / 60.f;
+        c.g = 0.f;
+        c.b = 1.f;
     }
     else {
-        blue = 0;
-        red = 255 * ((valuePosition - 0.5f) / 0.5f);
-        green = 255 - red;
+        c = BLACK;
     }
 
-    // Return the calculated color
-    return Color{ red / 255.f, green / 255.f, blue / 255.f};
+    return c;
 }

@@ -12,4 +12,4 @@ struct Color {
 #define YELLOW Color{1.f, 1.f, 0.f}
 #define BLACK Color{ 0.f, 0.f, 0.f }
 
-Color getColorForValue(float value, float minValue, float maxValue);
+Color getGradientColor(float intensity, float min_intensity, float max_intensity);

@@ -15,14 +15,6 @@ using namespace std;
 void generate_new_rays_zone(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, vector<Wall> walls, Wall wall, vector<Ray>& rays_hitting, vector<int>& walls_to_reflect, float start_energy, float total_distance, int reflexion_left, int max_reflexion) {
     // when a ray hits a wall, two rays are created
 
-    if (walls_to_reflect.size() == 2) {
-
-        if (walls_to_reflect[0] == 0 && walls_to_reflect[1] == 1) {
-
-            cout << " ";
-        }
-    }
-
     vec2 normalized_direction = glm::normalize(direction_before);
 
     float incident_cos = abs(glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction)); // pour que l'angle soit entre -90 et 90
@@ -40,6 +32,10 @@ void generate_new_rays_zone(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_bef
 
     float transmission = compute_total_transmission(incident_cos, cs, wall);
 
+    /*
+    reflection_coef = 1.f; // hmm ça ne change rien
+    transmission = 1.f; */
+
     if (reflexion_left != 0 && walls_to_reflect[reflexion_left - 1] == wall.id) {
             compute_ray_zone(tx, rx, reflection_vector, hit_point, rays_hitting, walls, walls_to_reflect, start_energy * reflection_coef, total_distance, reflexion_left - 1, max_reflexion);
     }
@@ -49,16 +45,8 @@ void generate_new_rays_zone(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_bef
 
 void compute_ray_zone(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>& rays_hitting, vector<Wall>& walls, vector<int>& walls_to_reflect, float start_energy, float total_distance, int reflexion_left, int max_reflexion) {
     if (reflexion_left == -1) return;
+
     // is hitting RX
-
-    if (walls_to_reflect.size() == 2) {
-
-        if (walls_to_reflect[0] == 0 && walls_to_reflect[1] == 1) {
-
-            cout << " ";
-        }
-    }
-
     vec2 direction_to_rx = normalize(rx - ray_origin);
     vec2 direction_normalized = normalize(direction);
 
@@ -66,6 +54,7 @@ void compute_ray_zone(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<
         direction_normalized.y < direction_to_rx.y + 0.000001 && direction_normalized.y > direction_to_rx.y - 0.000001 &&
         reflexion_left == 0) {
         float distance_to_rx = length(rx - ray_origin);
+
         // a wall could be between the ray reflex and RX
         bool found_wall_intersect_before_rx = true;
         Wall best_wall = walls[0];
@@ -73,10 +62,10 @@ void compute_ray_zone(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<
         vec2 hit_point = getIntersection(direction, ray_origin, walls, best_wall, found_wall_intersect_before_rx, distance_to_rx);
 
         if (found_wall_intersect_before_rx) {
-            return generate_new_rays_zone(tx, rx, hit_point, direction, walls, best_wall, rays_hitting, walls_to_reflect, start_energy, total_distance, reflexion_left, max_reflexion);
+            return generate_new_rays_zone(tx, rx, hit_point, direction, walls, best_wall, rays_hitting, walls_to_reflect, start_energy, total_distance + (length(hit_point - ray_origin) / 10.f), reflexion_left, max_reflexion);
         }
 
-        rays_hitting.push_back(Ray(ray_origin, rx, start_energy, total_distance + distance_to_rx));
+        rays_hitting.push_back(Ray(ray_origin, rx, start_energy, total_distance + (distance_to_rx / 10.f)));
 
         return;
     }
@@ -87,7 +76,7 @@ void compute_ray_zone(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<
 
     if (found) {
         // copies the vector
-        return generate_new_rays_zone(tx, rx, hit_point, direction, walls, best_wall, rays_hitting, walls_to_reflect, start_energy, total_distance, reflexion_left, max_reflexion);
+        return generate_new_rays_zone(tx, rx, hit_point, direction, walls, best_wall, rays_hitting, walls_to_reflect, start_energy, total_distance + (length(hit_point - ray_origin) / 10.f), reflexion_left, max_reflexion);
     }
 }
 
@@ -101,11 +90,13 @@ float module(complex<float> vector) {
 
 float compute_energy(std::vector<Ray>& rays_hitting)
 {
+
     float average_power = 0.f;
     float equivalent_resistance = 50.f;
     float directionality = 1.f;
     float power = 1.f;
-    float pulsation = 2.f * 3.141592f * 868.3f * pow(10, 6);
+    // float pulsation = 2.f * 3.141592f * 868.3f * pow(10, 6); // 868.3 MHz
+    float pulsation = 2.f * 3.141592f * 26.f * pow(10, 9); // 26 GHz
     float lambda = 3.f * pow(10, 6) * 2.f * 3.141592f / pulsation;
     float beta = compute_beta(1.f, 0.f, pulsation); // alpha in the air
 
@@ -114,9 +105,10 @@ float compute_energy(std::vector<Ray>& rays_hitting)
     complex<float> j{ 0, 1 }; // 0 + 1j
     // en soi l'exponentielle complexe est inutile vu qu'on calcule la puissance moyenne
     for (Ray r : rays_hitting) {
+
         complex<float> phaseur(sqrt(60.f * directionality * power) * exp(-j * beta * r.total_distance_travelled) / (r.total_distance_travelled));
 
-        average_power += squared_module(equivalent_height * phaseur);
+        average_power += squared_module(equivalent_height * phaseur * r.energy);
     }
 
     return average_power / (8.f * equivalent_resistance);
@@ -127,10 +119,6 @@ void generate_rays_direction_(vec2 tx, vec2 rx, vec2 fake_rx, vector<Wall> &wall
 
     for (int i = 0; i < walls.size(); i++)
     {
-        if (previous == 2 && i == 16) {
-
-            cout << " ";
-        }
         if (i == previous)
             continue;
         /*

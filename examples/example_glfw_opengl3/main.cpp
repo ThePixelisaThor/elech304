@@ -98,8 +98,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_circle_tx, VAO_circle_tx, CBO_circle_tx, 721);
     create_arrays(VBO_circle_rx, VAO_circle_rx, CBO_circle_rx, 721);
     
-    float pos_x_tx = 80.f;
-    float pos_y_tx = -20.f;
+    float pos_x_tx = -10.f;
+    float pos_y_tx = 0.5f;
 
     float pos_x_rx = 21.f;
     float pos_y_rx = -3.f;
@@ -198,7 +198,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
             std::vector<Ray> rays__;
 
-            generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 2);
+            generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 1);
 
             
             float power = compute_energy(rays__); // in db
@@ -209,9 +209,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             // if (c.r < 0.) c.r = 0.f;
             // if (c.g < 0.) c.g = 0.f;
             
-
-            Color c_p = getColorForValue(log_power, -12.f, -4.f);
-            Color c = getColorForValue(rays__.size(), 0.f, 50.f);
+            Color c_p = getGradientColor(log_power, -21.7f, -12.6f);
+            Color c = getGradientColor(rays__.size(), 0.f, 50.f);
             // Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
 
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
@@ -245,6 +244,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     int show_vect = 0;
     bool power = false;
+    float log_power = 0.f;
 
     glEnable(GL_DEPTH_TEST);
 
@@ -306,7 +306,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
         ImGui::Text("Ray count : %d", ray_count);
         ImGui::Text("Ray count hitting rx : %d", ray_rx_count);
-
+        ImGui::Text("Received power : %.3f", log_power);
         ImGui::End();
 
         ImGui::Render(); // render GUI
@@ -358,7 +358,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // rays
         
        
-        int maxRef = 2;
+        int maxRef = 1;
         if (image_method && render_again)
         {
             all_rays = {};
@@ -372,8 +372,11 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
             std::vector<Ray> rays_rx;
 
-            generate_ray_hitting_rx(center_tx, center_rx, walls_obj, rays_rx, 2);
+            generate_ray_hitting_rx(center_tx, center_rx, walls_obj, rays_rx, 1);
             ray_rx_count = rays_rx.size();
+
+            float power = compute_energy(rays_rx); // in db
+            log_power = log(power) / log(10); // c'est en base 2
 
             // all_rays = rays_rx;
 

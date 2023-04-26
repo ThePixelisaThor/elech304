@@ -48,13 +48,6 @@ void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, 
 
     float incident_cos = abs(glm::dot(glm::normalize(wall.fancy_vector.n), normalized_direction)); // pour que l'angle soit entre -90 et 90
 
-    if (walls_to_reflect.size() == 2) {
-        if (walls_to_reflect[0] == 2 && walls_to_reflect[1] == 16) {
-
-            cout << " ";
-        }
-    }
-
     // reflected ray
     complex<float> air_impedance = compute_impedance(1.f, 0, 1);
     coefficients cs = compute_reflection_coefficients(incident_cos, air_impedance, wall);
