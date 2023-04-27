@@ -177,6 +177,7 @@
     <ClCompile Include="vector_math.cpp" />
     <ClCompile Include="wall.cpp" />
     <ClCompile Include="zone_tracing.cpp" />
+    <ClCompile Include="zone_tracing_cpu.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h" />
@@ -189,6 +190,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="coefficients.h" />
     <ClInclude Include="color.h" />
+    <ClInclude Include="constants.h" />
     <ClInclude Include="ex_7_1.h" />
     <ClInclude Include="ex_8_1.h" />
     <ClInclude Include="fancy_vector.h" />
@@ -201,6 +203,7 @@
     <ClInclude Include="vector_math.h" />
     <ClInclude Include="wall.h" />
     <ClInclude Include="zone_tracing.h" />
+    <ClInclude Include="zone_tracing_cpu.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natstepfilter" />

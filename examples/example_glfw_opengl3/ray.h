@@ -29,6 +29,7 @@ public:
         energy = _energy;
         total_distance_travelled = _total_distance_travelled;
     }
+    Ray() : Ray(vec2(0, 0), vec2(0, 0), -1.f, 0.f) {} // default constructor to use with arrays
 
 public:
     void create(GLuint& VBO, GLuint& VAO, GLuint& CBO, Color color);

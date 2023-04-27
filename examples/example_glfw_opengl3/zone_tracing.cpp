@@ -90,7 +90,6 @@ float module(complex<float> vector) {
 
 float compute_energy(std::vector<Ray>& rays_hitting)
 {
-
     float average_power = 0.f;
     float equivalent_resistance = 50.f;
     float directionality = 1.f;

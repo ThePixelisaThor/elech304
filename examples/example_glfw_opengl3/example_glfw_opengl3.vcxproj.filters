@@ -29,6 +29,12 @@
     <Filter Include="sources\src\textures">
       <UniqueIdentifier>{84bb94ae-4b37-4ca7-8d60-f76379fda8ab}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\src\optimized">
+      <UniqueIdentifier>{42fd4f13-c98b-46d7-b1ec-b9f572ec9ac9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="sources\src\other">
+      <UniqueIdentifier>{ca20b42f-c34f-48ef-baad-f27dfc7172ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -93,6 +99,9 @@
     </ClCompile>
     <ClCompile Include="texture_utils.cpp">
       <Filter>sources\src\textures</Filter>
+    </ClCompile>
+    <ClCompile Include="zone_tracing_cpu.cpp">
+      <Filter>sources\src\optimized</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -161,6 +170,12 @@
     </ClInclude>
     <ClInclude Include="camera.h">
       <Filter>sources\src</Filter>
+    </ClInclude>
+    <ClInclude Include="zone_tracing_cpu.h">
+      <Filter>sources\src\optimized</Filter>
+    </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>sources\src\other</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -31,6 +31,7 @@
 
 #include "texture_utils.h"
 #include "camera.h"
+#include "zone_tracing_cpu.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -101,8 +102,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     float pos_x_tx = -10.f;
     float pos_y_tx = 0.5f;
 
-    float pos_x_rx = 21.f;
-    float pos_y_rx = -3.f;
+    float pos_x_rx = 77.f;
+    float pos_y_rx = -25.f;
 
     float buffer_pos_tx_x = 0;
     float buffer_pos_tx_y = 0;
@@ -176,8 +177,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     // generate local zones
 
-    const int zone_count_x = 200;
-    const int zone_count_y = 140;
+    const int zone_count_x = 20;
+    const int zone_count_y = 14;
 
     GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
     GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
@@ -190,27 +191,42 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
     create_arrays(VBO_zones_rect_p, VAO_zones_rect_p, CBO_zones_rect_p, zone_count_x * zone_count_y);
 
     vec2 tx_zone(pos_x_tx * 10.f, pos_y_tx * 10.f);
+    vec2 rx_zone(pos_x_rx * 10.f, pos_y_rx * 10.f);
+
+    Wall *wall_array = new Wall[walls_obj.size()];
+
+    for (int i = 0; i < walls_obj.size(); i++) {
+        wall_array[i] = walls_obj[i]; // walls_obj will be replaced later
+    }
+
+    Ray rays_test[100];
+    int ray_count_test = 0;
+    // compute_all_rays_hitting_rx_cpu(3, wall_array, walls_obj.size(), tx_zone, rx_zone, rays_test, ray_count_test);
+
+    double tic = glfwGetTime();
 
     for (int x = 0; x < zone_count_x; x++) {
         for (int y = 0; y < zone_count_y; y++) {
             // les problèmes
             vec2 rx_zone((x + 0.5f) * 1000.f / zone_count_x, -(y + 0.5) * 700.f / zone_count_y);
 
-            std::vector<Ray> rays__;
+            // std::vector<Ray> rays__;
 
-            generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 1);
+            // generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 1);
 
-            
-            float power = compute_energy(rays__); // in db
+            compute_all_rays_hitting_rx_cpu(3, wall_array, walls_obj.size(), tx_zone, rx_zone, rays_test, ray_count_test);
+            float power = compute_energy_cpu(rays_test, ray_count_test);
+            //float power = compute_energy(rays__); // in db
             float log_power = log(power) / log(10); // c'est en base 2
 
             // Color c{(12.f + log_power) / 4.f, (12.f + log_power) / 4.f, 0.f};
 
             // if (c.r < 0.) c.r = 0.f;
             // if (c.g < 0.) c.g = 0.f;
-            
+
+            /*
             Color c_p = getGradientColor(log_power, -21.7f, -12.6f);
-            Color c = getGradientColor(rays__.size(), 0.f, 50.f);
+            Color c = getGradientColor(ray_count_test, 0.f, 50.f);
             // Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
 
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
@@ -220,8 +236,12 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
                 vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
                 VBO_zones_rect_p[x * zone_count_y + y], VAO_zones_rect_p[x * zone_count_y + y], CBO_zones_rect_p[x * zone_count_y + y], c_p);
+            */
         }
     }
+
+    double toc = glfwGetTime();
+    double delta = toc - tic;
 
     // Get a handle for our "MVP" uniform
     MatrixID = glGetUniformLocation(shader, "MVP");
@@ -358,7 +378,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         // rays
         
        
-        int maxRef = 1;
+        int maxRef = 3;
         if (image_method && render_again)
         {
             all_rays = {};
@@ -372,7 +392,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
             std::vector<Ray> rays_rx;
 
-            generate_ray_hitting_rx(center_tx, center_rx, walls_obj, rays_rx, 1);
+            generate_ray_hitting_rx(center_tx, center_rx, walls_obj, rays_rx, maxRef);
             ray_rx_count = rays_rx.size();
 
             float power = compute_energy(rays_rx); // in db
@@ -392,16 +412,12 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
                 ray_cbo_buffer.push_back(*CBO);
                 ray_vbo_buffer.push_back(*VBO);
             }
-
-            std::cout << "test" << std::endl;
         }
         
         for (int i = max(0, show_vect - 20); i < min(ray_cbo_buffer.size(), show_vect); i++) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
             draw_array(ray_vbo_buffer[i], ray_cbo_buffer[i]);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-
-            std::cout << " " << std::endl;
         } 
         // for (Ray r : all_rays) r.create_draw(); // c'est de la merde ça memory leak
         ray_count = ray_vbo_buffer.size();
