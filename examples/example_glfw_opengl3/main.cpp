@@ -199,22 +199,44 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         wall_array[i] = walls_obj[i]; // walls_obj will be replaced later
     }
 
-    Ray rays_test[100];
-    int ray_count_test = 0;
-    // compute_all_rays_hitting_rx_cpu(3, wall_array, walls_obj.size(), tx_zone, rx_zone, rays_test, ray_count_test);
-
     double tic = glfwGetTime();
+
+    // creates all necessary arrays
+    int reflection_count = 3;
+    int wall_count = walls_obj.size();
+    int max_count = 1 + (int)pow(wall_count, reflection_count); // should equal mirror_count
+    vec2* all_tx_mirrors = new vec2[max_count]; // il y a moyen de calculer tous les tx mirrors, faire le chemin à l'envers mais c'est chiant je pense
+    int* each_reflection_count = new int[max_count];
+    int* walls_to_reflect = new int[max_count * reflection_count]; // represents a 2d array [[r1, r2, ...], [r1, r2, ...], ...]
+
+    int mirror_count = 0;
+
+    generate_all_mirrors(reflection_count, all_tx_mirrors, each_reflection_count, walls_to_reflect,
+        wall_array, wall_count, mirror_count, tx_zone, max_count);
+
+    bool hit;
+    int ray_count_zone = 0;
+    vec2 rx_zone_test;
+    Ray rays_test[100]; // max 100 vectors, not safe
+    int ray_count_test = 0;
 
     for (int x = 0; x < zone_count_x; x++) {
         for (int y = 0; y < zone_count_y; y++) {
             // les problèmes
-            vec2 rx_zone((x + 0.5f) * 1000.f / zone_count_x, -(y + 0.5) * 700.f / zone_count_y);
+            rx_zone_test.x = (x + 0.5f) * 1000.f / zone_count_x; // pour éviter d'instancier un vec2
+            rx_zone_test.y = -(y + 0.5) * 700.f / zone_count_y;
+            ray_count_test = 0;
 
-            // std::vector<Ray> rays__;
+            for (int m = 0; m < mirror_count; m++) {
+                compute_ray_cpu(tx_zone, rx_zone_test, all_tx_mirrors[m] - rx_zone_test, rays_test[ray_count_test], hit, wall_array, wall_count, &walls_to_reflect[m * reflection_count],
+                    1.0f, 0.f, each_reflection_count[m]);
 
-            // generate_ray_hitting_rx(tx_zone, rx_zone, walls_obj, rays__, 1);
+                if (hit)
+                    ray_count_test++;
+            }
 
-            compute_all_rays_hitting_rx_cpu(3, wall_array, walls_obj.size(), tx_zone, rx_zone, rays_test, ray_count_test);
+            // compute_all_rays_hitting_tx_cpu(2, wall_array, walls_obj.size(), tx_zone, rx_zone_test, rays_test, ray_count_test); // ça recalcule toutes les images
+
             float power = compute_energy_cpu(rays_test, ray_count_test);
             //float power = compute_energy(rays__); // in db
             float log_power = log(power) / log(10); // c'est en base 2
@@ -224,7 +246,6 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             // if (c.r < 0.) c.r = 0.f;
             // if (c.g < 0.) c.g = 0.f;
 
-            /*
             Color c_p = getGradientColor(log_power, -21.7f, -12.6f);
             Color c = getGradientColor(ray_count_test, 0.f, 50.f);
             // Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
@@ -236,9 +257,14 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
                 vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
                 VBO_zones_rect_p[x * zone_count_y + y], VAO_zones_rect_p[x * zone_count_y + y], CBO_zones_rect_p[x * zone_count_y + y], c_p);
-            */
+                
         }
     }
+
+    // évidemment on oublie pas de free la stack
+    delete[] all_tx_mirrors;
+    delete[] each_reflection_count;
+    delete[] walls_to_reflect;
 
     double toc = glfwGetTime();
     double delta = toc - tic;
