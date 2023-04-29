@@ -54,7 +54,6 @@ void Ray::create_draw() {
 }
 
 coefficients compute_reflection_coefficients(float incident_angle_cos, std::complex<float> impedance_air, Wall wall) {
-
     float incident_angle_sin = sqrt(1 - incident_angle_cos * incident_angle_cos);
     float transmitted_angle_sin = sqrt(1.0 / wall.relative_perm) * incident_angle_sin; // snell descartes
     float transmitted_angle_cos = sqrt(1 - transmitted_angle_sin * transmitted_angle_sin);

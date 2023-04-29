@@ -316,7 +316,7 @@ float compute_energy_cpu(Ray *rays_hitting, int &ray_count)
     float power = 1.f;
     // float pulsation = 2.f * 3.141592f * 868.3f * pow(10, 6); // 868.3 MHz
     float pulsation = 2.f * 3.141592f * 26.f * pow(10, 9); // 26 GHz
-    float lambda = 3.f * pow(10, 6) * 2.f * 3.141592f / pulsation;
+    float lambda = 3.f * pow(10, 8) * 2.f * 3.141592f / pulsation;
     float beta = compute_beta(1.f, 0.f, pulsation); // alpha in the air
 
     float equivalent_height = lambda / 3.141592f; // antenne dipôle avec theta = 90°

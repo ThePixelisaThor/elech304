@@ -202,7 +202,9 @@ int main(){
         wall_array[i] = walls_obj[i]; // walls_obj will be replaced later
     }
 
-    run_algo(zone_count_x, zone_count_y, 3, wall_array, walls_obj.size(), tx_zone);
+    // run_algo(zone_count_x, zone_count_y, 4, wall_array, walls_obj.size(), tx_zone);
+
+    run_final_algo(zone_count_x, zone_count_y, 3, wall_array, walls_obj.size(), tx_zone, 26.f * pow(10, 9) * 2.f * 3.141592f);
 
     return 1;
 
