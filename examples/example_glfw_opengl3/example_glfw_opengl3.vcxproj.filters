@@ -35,6 +35,9 @@
     <Filter Include="sources\src\other">
       <UniqueIdentifier>{ca20b42f-c34f-48ef-baad-f27dfc7172ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="sources\src\opencl_code">
+      <UniqueIdentifier>{2d5aa2b2-429d-4abb-82b2-4266aec0ceef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\imgui.cpp">
@@ -101,6 +104,9 @@
       <Filter>sources\src\textures</Filter>
     </ClCompile>
     <ClCompile Include="zone_tracing_cpu.cpp">
+      <Filter>sources\src\optimized</Filter>
+    </ClCompile>
+    <ClCompile Include="opencl_tests.cpp">
       <Filter>sources\src\optimized</Filter>
     </ClCompile>
   </ItemGroup>
@@ -177,6 +183,9 @@
     <ClInclude Include="constants.h">
       <Filter>sources\src\other</Filter>
     </ClInclude>
+    <ClInclude Include="opencl_tests.h">
+      <Filter>sources\src\optimized</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natvis">
@@ -203,6 +212,13 @@
     <None Include="plan_test.json">
       <Filter>sources\assets</Filter>
     </None>
+    <None Include="vecsum.cl">
+      <Filter>sources\src\opencl_code</Filter>
+    </None>
+    <None Include="zones.cl">
+      <Filter>sources\src\opencl_code</Filter>
+    </None>
+    <None Include="solve_zone.cl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="bricks.jpg">

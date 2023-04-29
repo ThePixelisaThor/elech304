@@ -106,12 +106,14 @@
       <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..;..\..\backends;..\libs\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>..\libs\glfw\lib-vc2010-64;..\libs\glew;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opengl32.lib;glfw3.lib;glew32.lib;legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <IgnoreSpecificDefaultLibraries>msvcrt.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -169,6 +171,7 @@
     <ClCompile Include="ex_8_1.cpp" />
     <ClCompile Include="fancy_vector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="opencl_tests.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="raytracing.cpp" />
     <ClCompile Include="render_utils.cpp" />
@@ -194,6 +197,7 @@
     <ClInclude Include="ex_7_1.h" />
     <ClInclude Include="ex_8_1.h" />
     <ClInclude Include="fancy_vector.h" />
+    <ClInclude Include="opencl_tests.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="raytracing.h" />
     <ClInclude Include="render_utils.h" />
@@ -214,6 +218,9 @@
     <None Include="plan_test.json" />
     <None Include="plan__.json" />
     <None Include="plan.json" />
+    <None Include="solve_zone.cl" />
+    <None Include="vecsum.cl" />
+    <None Include="zones.cl" />
   </ItemGroup>
   <ItemGroup>
     <Image Include="bricks.jpg" />

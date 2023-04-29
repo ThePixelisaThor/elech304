@@ -32,6 +32,8 @@
 #include "texture_utils.h"
 #include "camera.h"
 #include "zone_tracing_cpu.h"
+#include <CL/cl.h>
+#include "opencl_tests.h"
 
 using json = nlohmann::json;
 using namespace glm;
@@ -64,10 +66,11 @@ bool mouse_movement = false;
 bool mouse_movement_buffer = false;
 bool alt_key = false;
 
-int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
-{
+// int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
+int main(){
     // compute_everything();
     // compute_everything_8();
+    // test_opencl();
 
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
@@ -177,8 +180,8 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
 
     // generate local zones
 
-    const int zone_count_x = 20;
-    const int zone_count_y = 14;
+    const int zone_count_x = 200;
+    const int zone_count_y = 140;
 
     GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
     GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
@@ -199,13 +202,17 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         wall_array[i] = walls_obj[i]; // walls_obj will be replaced later
     }
 
+    run_algo(zone_count_x, zone_count_y, 3, wall_array, walls_obj.size(), tx_zone);
+
+    return 1;
+
     double tic = glfwGetTime();
 
     // creates all necessary arrays
-    int reflection_count = 3;
+    int reflection_count = 2;
     int wall_count = walls_obj.size();
     int max_count = 1 + (int)pow(wall_count, reflection_count); // should equal mirror_count
-    vec2* all_tx_mirrors = new vec2[max_count]; // il y a moyen de calculer tous les tx mirrors, faire le chemin à l'envers mais c'est chiant je pense
+    vec2* all_tx_mirrors = new vec2[max_count]; // il y a moyen de calculer tous les tx mirrors, faire le chemin à l'envers mais c'est chiant je pense (j'ai rien dit je l'ai fait)
     int* each_reflection_count = new int[max_count];
     int* walls_to_reflect = new int[max_count * reflection_count]; // represents a 2d array [[r1, r2, ...], [r1, r2, ...], ...]
 
@@ -257,7 +264,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
                 vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
                 VBO_zones_rect_p[x * zone_count_y + y], VAO_zones_rect_p[x * zone_count_y + y], CBO_zones_rect_p[x * zone_count_y + y], c_p);
-                
+
         }
     }
 
@@ -353,6 +360,7 @@ int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int n
         ImGui::Text("Ray count : %d", ray_count);
         ImGui::Text("Ray count hitting rx : %d", ray_rx_count);
         ImGui::Text("Received power : %.3f", log_power);
+        ImGui::Text("Test : %.6f", delta);
         ImGui::End();
 
         ImGui::Render(); // render GUI

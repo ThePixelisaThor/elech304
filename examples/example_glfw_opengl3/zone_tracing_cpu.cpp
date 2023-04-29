@@ -151,6 +151,7 @@ vec2 getIntersection_cpu(vec2 direction, vec2 origin, Wall* walls, int &wall_cou
     }
 
     if (best_intersection.x == -1000 && best_intersection.y == -1000) found = false;
+
     return best_intersection;
 }
 
