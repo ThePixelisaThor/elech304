@@ -105,8 +105,8 @@ int main(){
     float pos_x_tx = -10.f;
     float pos_y_tx = 0.5f;
 
-    float pos_x_rx = 77.f;
-    float pos_y_rx = -25.f;
+    float pos_x_rx = 0.25f;
+    float pos_y_rx = -0.25f;
 
     float buffer_pos_tx_x = 0;
     float buffer_pos_tx_y = 0;
@@ -180,8 +180,8 @@ int main(){
 
     // generate local zones
 
-    const int zone_count_x = 200;
-    const int zone_count_y = 140;
+    const int zone_count_x = 200*4;
+    const int zone_count_y = 140*4;
 
     GLuint* VBO_zones_rect = new GLuint[zone_count_x * zone_count_y];
     GLuint* VAO_zones_rect = new GLuint[zone_count_x * zone_count_y];
@@ -204,9 +204,44 @@ int main(){
 
     // run_algo(zone_count_x, zone_count_y, 4, wall_array, walls_obj.size(), tx_zone);
 
-    run_final_algo(zone_count_x, zone_count_y, 3, wall_array, walls_obj.size(), tx_zone, 26.f * pow(10, 9) * 2.f * 3.141592f);
+    float* energy_table = new float[zone_count_x * zone_count_y];
+    int* ray_count_table = new int[zone_count_x * zone_count_y];
+    int reflection_count = 3;
 
-    return 1;
+    double tic = glfwGetTime();
+
+    run_final_algo(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), tx_zone, 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table, ray_count_table);
+
+    double toc = glfwGetTime();
+    double delta = toc - tic;
+
+    float min_energy = 0.f, max_energy = -20.f;
+    for (int i = 0; i < zone_count_x * zone_count_y; i++) {
+        if (min_energy > energy_table[i]) min_energy = energy_table[i];
+        if (max_energy < energy_table[i]) max_energy = energy_table[i];
+    }
+
+    printf("Min energy %.3f, max energy %.3f \n", min_energy, max_energy);
+
+    for (int y = 0; y < zone_count_y; y++) {
+        for (int x = 0; x < zone_count_x; x++) {
+            // Color c_p = getGradientColor(energy_table[y * zone_count_x + x], -21.7f, -12.6f);
+            Color c_p = getGradientColor(energy_table[y * zone_count_x + x], min_energy, max_energy);
+            Color c = getGradientColor(ray_count_table[y * zone_count_x + x], 0.f, 50.f);
+
+            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
+                vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
+                VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y], c);
+
+            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
+                vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
+                VBO_zones_rect_p[x * zone_count_y + y], VAO_zones_rect_p[x * zone_count_y + y], CBO_zones_rect_p[x * zone_count_y + y], c_p);
+        }
+    }
+
+    delete[] energy_table, ray_count_table, VAO_zones_rect, VAO_zones_rect_p;
+
+    /*
 
     double tic = glfwGetTime();
 
@@ -277,6 +312,8 @@ int main(){
 
     double toc = glfwGetTime();
     double delta = toc - tic;
+
+    */
 
     // Get a handle for our "MVP" uniform
     MatrixID = glGetUniformLocation(shader, "MVP");
@@ -362,7 +399,10 @@ int main(){
         ImGui::Text("Ray count : %d", ray_count);
         ImGui::Text("Ray count hitting rx : %d", ray_rx_count);
         ImGui::Text("Received power : %.3f", log_power);
-        ImGui::Text("Test : %.6f", delta);
+        ImGui::SeparatorText("PERFORMANCE");
+        ImGui::Text("Time to run the algorithm (s) : %.3f", delta);
+        ImGui::Text("Number of reflections : %d", reflection_count);
+        ImGui::Text("Number of zones : %d", zone_count_x * zone_count_y);
         ImGui::End();
 
         ImGui::Render(); // render GUI
@@ -414,7 +454,7 @@ int main(){
         // rays
         
        
-        int maxRef = 3;
+        int maxRef = 1;
         if (image_method && render_again)
         {
             all_rays = {};

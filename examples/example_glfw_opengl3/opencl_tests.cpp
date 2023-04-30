@@ -353,13 +353,6 @@ void run_algo(int zone_count_x, int zone_count_y, int reflection_count, Wall wal
     cl_int enqueueReadBufferResult = clEnqueueReadBuffer(queue, vec_ray_count, CL_TRUE, 0, mirror_count * sizeof(int), ray_count, 0, nullptr, nullptr);
     assert(enqueueReadBufferResult == CL_SUCCESS);
 
-    // everything should be in ray_count
-    for (int i = 0; i < mirror_count; i++) {
-        int a = ray_count[i];
-
-        std::cout << "test";
-    }
-
     // memory release
     delete[] x_coordinates, y_coordinates, all_tx_mirrors, each_reflection_count, walls_to_reflect;
     delete[] tx_mirror_coordinates_x, tx_mirror_coordinates_y;
@@ -381,7 +374,8 @@ void run_algo(int zone_count_x, int zone_count_y, int reflection_count, Wall wal
     clReleaseDevice(device);
 }
 
-void run_final_algo(int zone_count_x, int zone_count_y, int reflection_count, Wall walls[], int wall_count, vec2 tx, float pulsation) {
+void run_final_algo(int zone_count_x, int zone_count_y, int reflection_count, Wall walls[], int wall_count, vec2 tx, float pulsation, float* energy,
+        int* ray_count) {
     // creates all necessary arrays
     int max_count = 1 + (int)pow(wall_count, reflection_count);
     vec2* all_tx_mirrors = new vec2[max_count]; // il y a moyen de calculer tous les tx mirrors, faire le chemin à l'envers mais c'est chiant je pense (j'ai rien dit je l'ai fait)
@@ -433,8 +427,6 @@ void run_final_algo(int zone_count_x, int zone_count_y, int reflection_count, Wa
     cl_float2* walls_impedance = new cl_float2[wall_count];
     cl_float2* walls_gamma = new cl_float2[wall_count];
 
-    float* energy = new float[zone_count_x * zone_count_y];
-
     for (int i = 0; i < wall_count; i++) {
         walls_coordinates_a[i] = { walls[i].fancy_vector.a.x, walls[i].fancy_vector.a.y };
         normalized_walls_u[i] = { walls[i].fancy_vector.normalized_u.x, walls[i].fancy_vector.normalized_u.y };
@@ -447,7 +439,6 @@ void run_final_algo(int zone_count_x, int zone_count_y, int reflection_count, Wa
     }
 
     cl_float2 tx_f2 = { tx.x, tx.y };
-    cl_int* ray_count = new cl_int[zone_count_x * zone_count_y]; // output of the code
 
     // build program and kernel
     cl_int contextResult;
@@ -641,8 +632,6 @@ void run_final_algo(int zone_count_x, int zone_count_y, int reflection_count, Wa
     for (int i = 0; i < zone_count_x * zone_count_y; i++) {
         int a = ray_count[i];
         float e = energy[i];
-
-        std::cout << "test";
     }
 
     // memory release

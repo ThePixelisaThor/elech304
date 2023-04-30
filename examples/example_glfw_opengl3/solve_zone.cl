@@ -58,6 +58,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
     float total_distance = 0;
     float rx_x = x_coordinates[compute_id % zone_count_x];
     float rx_y = y_coordinates[compute_id / zone_count_x];
+
     float2 rx = (float2) (rx_x, rx_y);
 
     ray_count[compute_id] = 0; // starts at 0
@@ -210,9 +211,14 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
                     total_distance += min_distance / 10.f;
                     ray_count[compute_id]++;
 
+                    if (compute_id == 0) {
+                        printf("pulsation %.3f, equivalent height %.3f, equivalent_resistance %.3f, directionality %.3f, power %.3f \n", pulsation, equivalent_height,
+                            equivalent_resistance, directionality, power);
+                        printf("Ray energy %.6f \n", ray_energy);
+                    }
+
                     // update energy
-                    energy[compute_id] = 60.f * directionality * power * ray_energy * pow(equivalent_height / total_distance, 2) / (8.f * equivalent_resistance);
-                    energy[compute_id] = log10(energy[compute_id]);
+                    energy[compute_id] += ray_energy / pow(total_distance, 2);
                     break;
                 }
             }
@@ -320,7 +326,14 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
         break;
         }
     }
-
+    // we want the energy in log
+    if (energy[compute_id] != 0.f) {
+        energy[compute_id] = log10(60.f * directionality * power * pow(equivalent_height, 2) / (8.f * equivalent_resistance) * energy[compute_id]);
+    } else {
+        energy[compute_id] = 50.f;
+    }
+    if (compute_id == 0) 
+        printf("Total energy %.3f \n", energy[compute_id]);
     // printf("Compute id : %d has finished, finding %d rays \n", compute_id, ray_count[compute_id]);
 }
 
