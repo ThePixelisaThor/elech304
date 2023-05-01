@@ -146,7 +146,7 @@ int main(){
     for (int i = 0; i < walls.size(); i++) {
         int material = walls_data[i]["material_id"] - 1;
         walls_obj.push_back(Wall(i, materials_data[material]["e_r"], materials_data[material]["sigma"], 26.f * pow(10, 9) * 2.f * 3.14159265f,
-                        walls[i], materials_data[material]["depth"], material));
+                        walls[i], materials_data[material]["depth"], material + 1)); // j'ai pas du tout galéré psq j'ai oublié le +1
     }
 
     // 3D walls
@@ -159,7 +159,8 @@ int main(){
     glUseProgram(shader_texture);
     float height = 50.f; // 5 meters
     for (int i = 0; i < walls.size(); i++) {
-        if (walls_obj[i].material_id != 2) continue;
+        if (walls_obj[i].material_id > 2) height = 25.f;
+        else height = 50.f;
         vec2 normalized = 10.f * glm::normalize(walls_obj[i].fancy_vector.n);
         create_textured_cube(
             vec3(walls_obj[i].fancy_vector.a + normalized, height),
@@ -175,53 +176,11 @@ int main(){
     }
 
     unsigned int brick_texture;
-    load_texture(brick_texture, false, "wood.jpg");
-
-    glUniform1i(glGetUniformLocation(shader_texture, "ourTexture"), 0);
-
-    // stone
-
-    glUseProgram(shader_texture);
-    height = 50.f; // 5 meters
-    for (int i = 0; i < walls.size(); i++) {
-        if (walls_obj[i].material_id != 1) continue;
-        vec2 normalized = 10.f * glm::normalize(walls_obj[i].fancy_vector.n);
-        create_textured_cube(
-            vec3(walls_obj[i].fancy_vector.a + normalized, height),
-            vec3(walls_obj[i].fancy_vector.a - normalized, height),
-            vec3(walls_obj[i].fancy_vector.b - normalized, height),
-            vec3(walls_obj[i].fancy_vector.b + normalized, height),
-            vec3(walls_obj[i].fancy_vector.a + normalized, 0.f),
-            vec3(walls_obj[i].fancy_vector.a - normalized, 0.f),
-            vec3(walls_obj[i].fancy_vector.b - normalized, 0.f),
-            vec3(walls_obj[i].fancy_vector.b + normalized, 0.f),
-            &VBO_rect[6 * i], &VAO_rect[6 * i], &EBO_rect[6 * i], WHITE);
-
-    }
+    load_texture(brick_texture, false, "bricks.jpg");
 
     unsigned int stone_texture;
-    load_texture(stone_texture, false, "wood.jpg");
+    load_texture(stone_texture, false, "stone.jpg");
 
-    glUniform1i(glGetUniformLocation(shader_texture, "ourTexture"), 0);
-
-    // wood
-    glUseProgram(shader_texture);
-    height = 25.f;
-    for (int i = 0; i < walls.size(); i++) {
-        if (walls_obj[i].material_id != 3 && walls_obj[i].material_id != 4) continue;
-        vec2 normalized = 10.f * glm::normalize(walls_obj[i].fancy_vector.n);
-        create_textured_cube(
-            vec3(walls_obj[i].fancy_vector.a + normalized, height),
-            vec3(walls_obj[i].fancy_vector.a - normalized, height),
-            vec3(walls_obj[i].fancy_vector.b - normalized, height),
-            vec3(walls_obj[i].fancy_vector.b + normalized, height),
-            vec3(walls_obj[i].fancy_vector.a + normalized, 0.f),
-            vec3(walls_obj[i].fancy_vector.a - normalized, 0.f),
-            vec3(walls_obj[i].fancy_vector.b - normalized, 0.f),
-            vec3(walls_obj[i].fancy_vector.b + normalized, 0.f),
-            &VBO_rect[6 * i], &VAO_rect[6 * i], &EBO_rect[6 * i], WHITE);
-
-    }
     unsigned int wood_texture;
     load_texture(wood_texture, false, "wood.jpg");
 
@@ -314,80 +273,6 @@ int main(){
     }
 
     delete[] energy_table_tx3, ray_count_table, VAO_zones_rect, VAO_zones_rect_p;
-
-    /*
-
-    double tic = glfwGetTime();
-
-    // creates all necessary arrays
-    int reflection_count = 2;
-    int wall_count = walls_obj.size();
-    int max_count = 1 + (int)pow(wall_count, reflection_count); // should equal mirror_count
-    vec2* all_tx_mirrors = new vec2[max_count]; // il y a moyen de calculer tous les tx mirrors, faire le chemin à l'envers mais c'est chiant je pense (j'ai rien dit je l'ai fait)
-    int* each_reflection_count = new int[max_count];
-    int* walls_to_reflect = new int[max_count * reflection_count]; // represents a 2d array [[r1, r2, ...], [r1, r2, ...], ...]
-
-    int mirror_count = 0;
-
-    generate_all_mirrors(reflection_count, all_tx_mirrors, each_reflection_count, walls_to_reflect,
-        wall_array, wall_count, mirror_count, tx_zone, max_count);
-
-    bool hit;
-    int ray_count_zone = 0;
-    vec2 rx_zone_test;
-    Ray rays_test[100]; // max 100 vectors, not safe
-    int ray_count_test = 0;
-
-    for (int x = 0; x < zone_count_x; x++) {
-        for (int y = 0; y < zone_count_y; y++) {
-            // les problèmes
-            rx_zone_test.x = (x + 0.5f) * 1000.f / zone_count_x; // pour éviter d'instancier un vec2
-            rx_zone_test.y = -(y + 0.5) * 700.f / zone_count_y;
-            ray_count_test = 0;
-
-            for (int m = 0; m < mirror_count; m++) {
-                compute_ray_cpu(tx_zone, rx_zone_test, all_tx_mirrors[m] - rx_zone_test, rays_test[ray_count_test], hit, wall_array, wall_count, &walls_to_reflect[m * reflection_count],
-                    1.0f, 0.f, each_reflection_count[m]);
-
-                if (hit)
-                    ray_count_test++;
-            }
-
-            // compute_all_rays_hitting_tx_cpu(2, wall_array, walls_obj.size(), tx_zone, rx_zone_test, rays_test, ray_count_test); // ça recalcule toutes les images
-
-            float power = compute_energy_cpu(rays_test, ray_count_test);
-            //float power = compute_energy(rays__); // in db
-            float log_power = log(power) / log(10); // c'est en base 2
-
-            // Color c{(12.f + log_power) / 4.f, (12.f + log_power) / 4.f, 0.f};
-
-            // if (c.r < 0.) c.r = 0.f;
-            // if (c.g < 0.) c.g = 0.f;
-
-            Color c_p = getGradientColor(log_power, -21.7f, -12.6f);
-            Color c = getGradientColor(ray_count_test, 0.f, 50.f);
-            // Color c{ rays__.size() / 20.f, rays__.size() / 20.f, 0.f };
-
-            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
-                vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
-                VBO_zones_rect[x * zone_count_y + y], VAO_zones_rect[x * zone_count_y + y], CBO_zones_rect[x * zone_count_y + y], c);
-
-            create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
-                vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
-                VBO_zones_rect_p[x * zone_count_y + y], VAO_zones_rect_p[x * zone_count_y + y], CBO_zones_rect_p[x * zone_count_y + y], c_p);
-
-        }
-    }
-
-    // évidemment on oublie pas de free la stack
-    delete[] all_tx_mirrors;
-    delete[] each_reflection_count;
-    delete[] walls_to_reflect;
-
-    double toc = glfwGetTime();
-    double delta = toc - tic;
-
-    */
 
     // Get a handle for our "MVP" uniform
     MatrixID = glGetUniformLocation(shader, "MVP");
@@ -498,20 +383,17 @@ int main(){
             ray_tracing_buffer = ray_tracing;
         }
 
-        // pass projection matrix to shader (note that in this case it could change every frame)
         glm::mat4 Projection = glm::perspective(glm::radians(camera.Zoom), (float)WIDTH / (float)HEIGHT, 0.1f, 1000.0f);
-
-        // camera/view transformation
         glm::mat4 View = camera.GetViewMatrix();
-
-
         glm::mat4 Model = glm::mat4(1.0f);
         MVP = Projection * View * Model;
 
         if (d3) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
             for (int i = 0; i < walls.size() * 6; i++)
-                draw_textured_rectangle(brick_texture, shader, shader_texture, VAO_rect[i], VBO_rect[i], EBO_rect[i]);
+                draw_textured_rectangle((walls_obj[i / 6].material_id == 1) ? stone_texture : ((walls_obj[i / 6].material_id == 2) ? brick_texture : wood_texture),
+                    shader, shader_texture, VAO_rect[i], VBO_rect[i], EBO_rect[i]);
+                //draw_textured_rectangle(brick_texture, shader, shader_texture, VAO_rect[i], VBO_rect[i], EBO_rect[i]);
             glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         }
         vec2 center_tx(pos_x_tx * 10.f, pos_y_tx * 10.f);
