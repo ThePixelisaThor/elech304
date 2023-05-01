@@ -70,29 +70,16 @@ void create_textured_rectangle(vec3 tl, vec3 tr, vec3 br, vec3 bl, GLuint& VBO, 
     float y_ratio = 1.f;
     float texture_ratio = 1.f;
 
-    if (abs(tl.x - br.x) > abs(tl.y - br.y) && tl.z - br.z == 0) {
-        y_ratio *= abs((tl.x - br.x) / (tl.y - br.y));
-        texture_ratio = abs(tl.y - br.y) / texture_size;
-    }
-    else if (abs(tl.x - br.x) < abs(tl.y - br.y) && tl.z - br.z == 0) {
-        y_ratio *= abs((tl.y - br.y) / (tl.x - br.x));
-        texture_ratio = abs(tl.x - br.x) / texture_size;
-    }
-    else if (abs(tl.x - br.x) > abs(tl.z - br.z) && tl.y - br.y == 0) {
-        x_ratio *= abs((tl.x - br.x) / (tl.z - br.z));
-        texture_ratio = abs(tl.z - br.z) / texture_size;
-    }
-    else if (abs(tl.x - br.x) < abs(tl.z - br.z) && tl.y - br.y == 0) {
-        x_ratio *= abs((tl.z - br.z) / (tl.x - br.x));
-        texture_ratio = abs(tl.x - br.x) / texture_size;
-    }
-    else if (abs(tl.y - br.y) > abs(tl.z - br.z) && tl.x - br.x == 0) {
-        x_ratio *= abs((tl.y - br.y) / (tl.z - br.z));
-        texture_ratio = abs(tl.z - br.z) / texture_size;
+    float length_horizontal = length(tr - tl);
+    float length_vertical = length(tr - br);
+
+    if (length_horizontal >= length_vertical) { // c'était tout con j'ai mongolisé dessus
+        x_ratio *= length_horizontal / length_vertical;
+        texture_ratio = length_vertical / texture_size;
     }
     else {
-        x_ratio *= abs((tl.z - br.z) / (tl.y - br.y));
-        texture_ratio = abs(tl.y - br.y) / texture_size;
+        y_ratio *= length_vertical / length_horizontal;
+        texture_ratio = length_horizontal / texture_size;
     }
 
     x_ratio *= texture_ratio;

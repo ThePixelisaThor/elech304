@@ -9,7 +9,7 @@ void compute_everything_8() {
     std::complex<float> Z0 = compute_impedance(1.f, 0, 1); // 377 ohms ✅
     std::complex<float> Z1 = compute_impedance(4.8f, 0.018, pulsation); // 171.57 + i*6.65 ✅
 
-    Wall w(0, 4.8f, 0.018f, pulsation, FancyVector{}, 0.15);
+    Wall w(0, 4.8f, 0.018f, pulsation, FancyVector{}, 0.15, 0);
 
     /*
     float coefs[360];

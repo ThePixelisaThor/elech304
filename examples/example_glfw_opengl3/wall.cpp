@@ -9,7 +9,7 @@ using namespace glm;
 #include <vector>
 #include <complex>
 
-Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth) {
+Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth, int _material_id) {
     id = _id;
     relative_perm = _relative_perm;
     conductivity = _conductivity;
@@ -18,6 +18,7 @@ Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation,
     set_impedance(_pulsation);
     set_gamma(_pulsation);
     pulsation = _pulsation;
+    material_id = _material_id;
 }
 
 void Wall::set_impedance(float pulsation) {
@@ -39,14 +40,14 @@ std::complex<float> compute_gamma(float relative_perm, float conductivity, float
 }
 
 float compute_alpha(float relative_perm, float conductivity, float pulsation) {
-    float alpha = pulsation * sqrt((4.f * 3.14159265f * pow(10, -7) * 8.854f * pow(10, -12) * relative_perm) / 2);
-    alpha *= sqrt(sqrt(1 + pow(conductivity / (pulsation * 8.854f * pow(10, -12) * relative_perm), 2)) - 1);
+    float alpha = pulsation * sqrt((4.f * 3.14159265f * pow(10, -7) * 8.854f * pow(10, -12) * relative_perm) / 2.0);
+    alpha *= sqrt(sqrt(1.0 + pow(conductivity / (pulsation * 8.854f * pow(10, -12) * relative_perm), 2)) - 1.0);
     return alpha; // normalement le compilateur optimisera ce code pour éviter de créer une variable inutile
 }
 
 float compute_beta(float relative_perm, float conductivity, float pulsation) {
-    float beta = pulsation * sqrt((4.f * 3.14159265f * pow(10, -7) * 8.854f * pow(10, -12) * relative_perm) / 2);
-    beta *= sqrt(sqrt(1 + pow(conductivity / (pulsation * 8.854f * pow(10, -12) * relative_perm), 2)) + 1);
+    float beta = pulsation * sqrt((4.f * 3.14159265f * pow(10, -7) * 8.854f * pow(10, -12) * relative_perm) / 2.0);
+    beta *= sqrt(sqrt(1.0 + pow(conductivity / (pulsation * 8.854f * pow(10, -12) * relative_perm), 2)) + 1.0);
     return beta; // idem
 }
 

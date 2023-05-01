@@ -218,10 +218,21 @@
     <None Include="zones.cl">
       <Filter>sources\src\opencl_code</Filter>
     </None>
-    <None Include="solve_zone.cl" />
+    <None Include="solve_zone.cl">
+      <Filter>sources\src\opencl_code</Filter>
+    </None>
+    <None Include="zone_antenna.cl">
+      <Filter>sources\src\opencl_code</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="bricks.jpg">
+      <Filter>sources\assets</Filter>
+    </Image>
+    <Image Include="stone.jpg">
+      <Filter>sources\assets</Filter>
+    </Image>
+    <Image Include="wood.jpg">
       <Filter>sources\assets</Filter>
     </Image>
   </ItemGroup>
