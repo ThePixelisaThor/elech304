@@ -146,7 +146,7 @@ int main(){
     for (int i = 0; i < walls.size(); i++) {
         int material = walls_data[i]["material_id"] - 1;
         walls_obj.push_back(Wall(i, materials_data[material]["e_r"], materials_data[material]["sigma"], 26.f * pow(10, 9) * 2.f * 3.14159265f,
-                        walls[i], materials_data[material]["depth"], material + 1)); // j'ai pas du tout galéré psq j'ai oublié le +1
+                        walls[i], materials_data[material]["depth"], material + 1)); // j'ai pas du tout galéré psq j'ai oublié le + 1
     }
 
     // 3D walls
