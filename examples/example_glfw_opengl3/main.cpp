@@ -225,15 +225,16 @@ int main(){
     double tic = glfwGetTime();
 
     // run_final_algo(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), tx_zone, 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table, ray_count_table);
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(-100.f, 5.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx3, ray_count_table, 3, 0.1f); // TX3
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(450.f, -250.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1, ray_count_table, 1, 0.1f); // TX1
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(925.f, -276.795f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1_bis, ray_count_table, 1, 0.1f); // TX1 bis
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(700.f, -500.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx2, ray_count_table, 2, 0.1f); // TX2
+
+    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(-100.f, 5.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx3, ray_count_table, 3, 1.f); // TX3
+    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(450.f, -250.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1, ray_count_table, 1, 0.f); // TX1
+    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(925.f, -276.795f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1_bis, ray_count_table, 1, 0.f); // TX1 bis
+    // run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(700.f, -500.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx2, ray_count_table, 2, 0.1f); // TX2
 
     double toc = glfwGetTime();
     double delta = toc - tic;
 
-    float min_energy = -80.f, max_energy = -30.f;
+    float min_energy = -80.f, max_energy = -60.f;
 
     /*
     for (int i = 0; i < zone_count_x * zone_count_y; i++) {
@@ -248,10 +249,15 @@ int main(){
 
     for (int y = 0; y < zone_count_y; y++) {
         for (int x = 0; x < zone_count_x; x++) {
-            // Color c_p = getGradientColor(energy_table[y * zone_count_x + x], -21.7f, -12.6f);
-
+             Color c_p = getGradientColor(energy_table_tx1[y * zone_count_x + x], min_energy, max_energy);
+            /*
             Color c_p = getGradientColor(max(energy_table_tx3[y * zone_count_x + x], max(energy_table_tx1[y * zone_count_x + x],
                 max(energy_table_tx1_bis[y * zone_count_x + x], energy_table_tx2[y * zone_count_x + x]))), min_energy, max_energy);
+                */
+
+            /*
+            Color c_p = getGradientColor(max(energy_table_tx3[y * zone_count_x + x], max(energy_table_tx1[y * zone_count_x + x],
+                energy_table_tx1_bis[y * zone_count_x + x])), min_energy, max_energy); */
 
             if (y == 0 && x == 8) {
                 printf("Color %.3f - %.3f - %.3f \n", c_p.r, c_p.g, c_p.b);

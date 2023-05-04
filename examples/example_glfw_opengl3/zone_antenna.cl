@@ -40,8 +40,9 @@ inline cl_complex cl_complex_exp(cl_complex n){
 }
 
 inline float get_antenna_power(int antenna_id, float incident_angle_cos, float antenna_angle) {
-    if (antenna_id == 1) return 0.1; // 0.1 W for TX1
-    if (antenna_id == 2) return 3.162; // TX2
+    // G * P
+    if (antenna_id == 1) return 1.5 * 0.1; // 0.1 W for TX1, with directivity
+    if (antenna_id == 2) return 1.5 * 3.162; // TX2
     if (antenna_id == 3) {
         return 3.162 * pow(10, (21.5836 - 12 * pown((acos(incident_angle_cos) - antenna_angle) / 0.5236, 2)) / 10.0); // power of TX3 varies depending on the angle
     }
@@ -114,7 +115,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
     cl_complex squared_total_transmission_coef;
 
     // energy, thoses constants will be eventually moved
-    float equivalent_resistance = 50.f; // du récepteur !!
+    float equivalent_resistance = 73.f; // du récepteur !!
     float power = 1.f;
     float lambda = 3.f * pown(10.f, 8) * 2.f * 3.141592f / pulsation; // 2 pi v / omega
     float equivalent_height = lambda / 3.141592f;
