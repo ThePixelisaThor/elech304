@@ -1,0 +1,23 @@
+[
+    {
+        "material_id": 5,
+        "point_ax": 0.0,
+        "point_ay": 80.0,
+        "point_bx": 100.0,
+        "point_by": 80.0
+    },
+    {
+        "material_id": 5,
+        "point_ax": 0.0,
+        "point_ay": 80.0,
+        "point_bx": 0.0,
+        "point_by": 0.0
+    },
+    {
+        "material_id": 5,
+        "point_ax": 0.0,
+        "point_ay": 20.0,
+        "point_bx": 100.0,
+        "point_by": 20.0
+    }
+]

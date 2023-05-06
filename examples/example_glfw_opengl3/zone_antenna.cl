@@ -43,8 +43,8 @@ inline float get_antenna_power(int antenna_id, float incident_angle_cos, float a
     // G * P
     if (antenna_id == 1) return 1.5 * 0.1; // 0.1 W for TX1, with directivity
     if (antenna_id == 2) return 1.5 * 3.162; // TX2
-    if (antenna_id == 3) {
-        return 3.162 * pow(10, (21.5836 - 12 * pown((acos(incident_angle_cos) - antenna_angle) / 0.5236, 2)) / 10.0); // power of TX3 varies depending on the angle
+    if (antenna_id == 3) { // permis car on est que dans le 4e cadran
+        return 3.162 * pow(10, (21.5836 - 12 * pown((-acos(incident_angle_cos) - antenna_angle) / 0.5236, 2)) / 10.0); // power of TX3 varies depending on the angle
     }
     return 1.;
 }
@@ -112,10 +112,14 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
     cl_complex reflection_coef;
     cl_complex squared_reflection_coef;
     cl_complex total_transmission_coef;
+    cl_complex total_reflection_coef;
     cl_complex squared_total_transmission_coef;
 
     // energy, thoses constants will be eventually moved
-    float equivalent_resistance = 73.f; // du récepteur !!
+    // float equivalent_resistance = 73.f; // du récepteur !!
+    //float equivalent_resistance = 49.348f; // 20 * (pi L/lambda)²
+    float equivalent_resistance = 197.392; // 80 * (pi L/lambda)²
+
     float power = 1.f;
     float lambda = 3.f * pown(10.f, 8) * 2.f * 3.141592f / pulsation; // 2 pi v / omega
     float equivalent_height = lambda / 3.141592f;
@@ -226,7 +230,18 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
 
                     // update energy
                     if (antenna_id == 3)
-                        incident_angle_cos = fabs(dot((float2) (1, 0), current_direction_normalized));
+                        incident_angle_cos = fabs(dot((float2) (1, 0), current_direction_to_tx_normalized));
+
+                    if (compute_id == 0 && antenna_id == 3) {
+                        printf("Incident angle cos : %.5f, antenna angle %.5f, angle %.5f, antenna power : %.5f\n",
+                        incident_angle_cos, antenna_angle, acos(incident_angle_cos), get_antenna_power(antenna_id, incident_angle_cos, antenna_angle));
+                        printf("Direction to tx : %.5f, %.5f\n", current_direction_to_tx_normalized.x, current_direction_to_tx_normalized.y);
+                        printf("Current direction : %.5f, %.5f\n", (tx - current_origin).x, (tx - current_origin).y);
+                        printf("Ray energy : %.5f\n", ray_energy);
+                        printf("Total distance : %.5f\n", total_distance);
+                        printf("Lambda : %.6f\n", lambda);
+                        printf("equivalent height : %.6f\n", equivalent_height);
+                        }
 
                     if (ray_energy > 0.f && ray_energy <= 1.f) // parfois ray_energy vaut NaN jsp pourquoi
                         energy[compute_id] += get_antenna_power(antenna_id, incident_angle_cos, antenna_angle) * ray_energy / pown(total_distance, 2);
@@ -306,8 +321,41 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
                     reflexion_left--;
                     current_direction_to_tx_normalized = normalize(tx - current_origin);
                     current_direction_normalized = normalize(current_direction);
-                    ray_energy *= cl_complex_modulus_squared(reflection_coef);
 
+                    /*
+                    std::complex<float> reflection_coef_after = - (one - c.reflection * c.reflection) * c.reflection
+                    * exp(-two * wall.gamma * transmitted_depth)
+                    * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
+                    */
+
+                    total_reflection_coef = cl_complex_multiply(
+                                                cl_complex_multiply(
+                                                    cl_complex_multiply(cl_complex_add(- one, squared_reflection_coef), reflection_coef),
+                                                    cl_complex_exp(-2 * walls_gamma[best_wall_id] * transmitted_depth)),
+                                                cl_complex_exp((cl_complex) (0, 2 * beta * transmitted_depth * transmitted_angle_sin * incident_angle_sin))
+                                                );
+
+                    total_reflection_coef = cl_complex_divide(total_reflection_coef,
+                                                    cl_complex_add(one,
+                                                    - cl_complex_multiply(
+                                                        squared_reflection_coef,
+                                                        cl_complex_multiply(
+                                                            cl_complex_exp(
+                                                            -2 * walls_gamma[best_wall_id] * transmitted_depth),
+                                                            cl_complex_exp(
+                                                                (cl_complex) (0, 2 * beta * transmitted_depth * transmitted_angle_sin * incident_angle_sin)
+                                                        ))
+                                                    )));
+
+                    total_reflection_coef = cl_complex_add(total_reflection_coef, reflection_coef);
+
+                    /*
+                    if (compute_id < 2) {
+                        printf("Reflection coef %.5f + i * %.5f = %.5f, total reflection coef %.5f + i * %.5f  = %.5f\n", reflection_coef.x, reflection_coef.y, cl_complex_modulus_squared(reflection_coef),
+                        total_reflection_coef.x, total_reflection_coef.y, cl_complex_modulus_squared(total_reflection_coef));
+                    }*/
+
+                    ray_energy *= cl_complex_modulus_squared(total_reflection_coef);
                 } else {
                     // transmission on a random wall
 

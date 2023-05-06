@@ -22,11 +22,18 @@ public:
     float energy; // a ray transmitted through a wall creates a new ray
     short base_station_id = 1;
     float total_distance_travelled; // stores the distance of previous rays that created this one
+    std::complex<float> complex_energy;
 
     Ray(vec2 _origin, vec2 _end, float _energy, float _total_distance_travelled) {
         origin = _origin;
         end = _end;
         energy = _energy;
+        total_distance_travelled = _total_distance_travelled;
+    }
+    Ray(vec2 _origin, vec2 _end, std::complex<float> _energy, float _total_distance_travelled) {
+        origin = _origin;
+        end = _end;
+        complex_energy = _energy;
         total_distance_travelled = _total_distance_travelled;
     }
     Ray() : Ray(vec2(0, 0), vec2(0, 0), -1.f, 0.f) {} // default constructor to use with arrays
@@ -41,7 +48,11 @@ public:
     void create_draw(Color color);
 
     void create_draw();
+
+    void set_complex_energy(std::complex<float> energy);
 };
 
 coefficients compute_reflection_coefficients(float incident_angle_cos, std::complex<float> impedance_air, Wall wall);
 float compute_total_transmission(float incident_angle_cos, coefficients c, Wall wall);
+std::complex<float> compute_total_transmission_coefficient(float incident_angle_cos, coefficients c, Wall wall);
+std::complex<float> compute_total_reflection_coefficient(float incident_angle_cos, coefficients c, Wall wall);

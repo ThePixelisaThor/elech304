@@ -12,6 +12,9 @@ using namespace glm;
 #include "wall.h"
 #include "coefficients.h"
 
+void Ray::set_complex_energy(std::complex<float> _energy) {
+    complex_energy = _energy;
+}
 
 void create_ray(GLuint& VBO, GLuint& VAO, GLuint& CBO, Ray ray, Color color) {
     create_line(ray.origin, ray.end, VBO, VAO, CBO, color);
@@ -86,8 +89,43 @@ float compute_total_transmission(float incident_angle_cos, coefficients c, Wall 
     float beta = wall.pulsation / (3.f * pow(10, 8));
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
 
-    std::complex<double> transmission_coef_squared = pow(transmission_coef_after, 2);
-
-    return sqrt(pow(transmission_coef_squared.real(), 2) + pow(transmission_coef_squared.imag(), 2));
+    return pow(transmission_coef_after.real(), 2) + pow(transmission_coef_after.imag(), 2);
 }
 
+std::complex<float> compute_total_transmission_coefficient(float incident_angle_cos, coefficients c, Wall wall) {
+    float incident_angle_sin = sqrt(1 - incident_angle_cos * incident_angle_cos);
+    float transmitted_angle_sin = sqrt(1.0 / wall.relative_perm) * incident_angle_sin; // snell descartes
+    float transmitted_angle_cos = sqrt(1 - transmitted_angle_sin * transmitted_angle_sin);
+    float transmitted_depth = wall.depth / transmitted_angle_cos; // transmitted angle cos should never be zero
+    std::complex<float> one{ 1, 0 }; // 1 + 0j
+    std::complex<float> two{ 2, 0 }; // 2 + 0j
+    std::complex<float> j{ 0, 1 }; // 0 + 1j
+
+    /*
+    std::complex<float> transmission_coef_after = c.transmission * c.transmission_reverse * exp(-wall.gamma * transmitted_depth);
+    transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * wall.beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
+    */
+    std::complex<float> transmission_coef_after = (one - c.reflection * c.reflection) * exp(-wall.gamma * transmitted_depth);
+    float beta = wall.pulsation / (3.f * pow(10, 8));
+    transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
+
+    return transmission_coef_after;
+}
+
+std::complex<float> compute_total_reflection_coefficient(float incident_angle_cos, coefficients c, Wall wall) {
+    float incident_angle_sin = sqrt(1 - incident_angle_cos * incident_angle_cos);
+    float transmitted_angle_sin = sqrt(1.0 / wall.relative_perm) * incident_angle_sin; // snell descartes
+    float transmitted_angle_cos = sqrt(1 - transmitted_angle_sin * transmitted_angle_sin);
+    float transmitted_depth = wall.depth / transmitted_angle_cos; // transmitted angle cos should never be zero
+    std::complex<float> one{ 1, 0 }; // 1 + 0j
+    std::complex<float> two{ 2, 0 }; // 2 + 0j
+    std::complex<float> j{ 0, 1 }; // 0 + 1j
+
+    float beta = wall.pulsation / (3.f * pow(10, 8));
+    std::complex<float> reflection_coef_after = - (one - c.reflection * c.reflection) * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
+    reflection_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
+
+    reflection_coef_after += c.reflection;
+
+    return reflection_coef_after;
+}

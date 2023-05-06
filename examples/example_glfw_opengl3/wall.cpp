@@ -27,6 +27,7 @@ void Wall::set_impedance(float pulsation) {
 
 void Wall::set_gamma(float pulsation) {
     gamma = compute_gamma(relative_perm, conductivity, pulsation);
+
     alpha = gamma.real();
     beta = gamma.imag();
 }

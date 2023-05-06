@@ -175,6 +175,7 @@
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="raytracing.cpp" />
     <ClCompile Include="render_utils.cpp" />
+    <ClCompile Include="rx_field.cpp" />
     <ClCompile Include="shader_utils.cpp" />
     <ClCompile Include="texture_utils.cpp" />
     <ClCompile Include="vector_math.cpp" />
@@ -201,6 +202,7 @@
     <ClInclude Include="ray.h" />
     <ClInclude Include="raytracing.h" />
     <ClInclude Include="render_utils.h" />
+    <ClInclude Include="rx_field.h" />
     <ClInclude Include="shader_utils.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture_utils.h" />
@@ -215,6 +217,7 @@
     <None Include="..\README.txt" />
     <None Include="materials.json" />
     <None Include="plan_.json" />
+    <None Include="plan_ex8.json" />
     <None Include="plan_test.json" />
     <None Include="plan__.json" />
     <None Include="plan.json" />

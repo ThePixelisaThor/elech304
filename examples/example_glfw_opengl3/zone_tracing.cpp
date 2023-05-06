@@ -33,7 +33,7 @@ void generate_new_rays_zone(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_bef
     float transmission = compute_total_transmission(incident_cos, cs, wall);
 
     if (reflexion_left != 0 && walls_to_reflect[reflexion_left - 1] == wall.id) {
-            compute_ray_zone(tx, rx, reflection_vector, hit_point, rays_hitting, walls, walls_to_reflect, start_energy * reflection_coef, total_distance, reflexion_left - 1, max_reflexion);
+        compute_ray_zone(tx, rx, reflection_vector, hit_point, rays_hitting, walls, walls_to_reflect, start_energy * reflection_coef, total_distance, reflexion_left - 1, max_reflexion);
     }
     else
         compute_ray_zone(tx, rx, direction_before, hit_point, rays_hitting, walls, walls_to_reflect, start_energy * transmission, total_distance, reflexion_left, max_reflexion);

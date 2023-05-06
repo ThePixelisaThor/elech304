@@ -9,3 +9,6 @@ void generate_all_mirrors(int& reflection_count, glm::vec2* all_mirrors, int* ea
     Wall* walls, int& wall_count, int& mirror_count, glm::vec2& tx, int& total_count);
 void compute_ray_cpu(glm::vec2& tx, glm::vec2& rx, glm::vec2 direction, Ray& ray, bool& hit, Wall* walls, int wall_count,
     int* walls_to_reflect, float energy, float total_distance, int max_reflexion);
+vec2 getMirrorWithWall_cpu(glm::vec2 point, FancyVector wall);
+vec2 getIntersection_cpu(glm::vec2 direction, glm::vec2 origin, Wall* walls, int& wall_count, Wall& best_wall, bool& found, float min_distance);
+float squared_module_cpu(std::complex<float> vector);

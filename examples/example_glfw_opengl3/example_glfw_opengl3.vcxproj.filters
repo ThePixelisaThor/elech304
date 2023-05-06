@@ -109,6 +109,9 @@
     <ClCompile Include="opencl_tests.cpp">
       <Filter>sources\src\optimized</Filter>
     </ClCompile>
+    <ClCompile Include="rx_field.cpp">
+      <Filter>sources\src\tests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -186,6 +189,9 @@
     <ClInclude Include="opencl_tests.h">
       <Filter>sources\src\optimized</Filter>
     </ClInclude>
+    <ClInclude Include="rx_field.h">
+      <Filter>sources\src\tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\misc\debuggers\imgui.natvis">
@@ -223,6 +229,9 @@
     </None>
     <None Include="zone_antenna.cl">
       <Filter>sources\src\opencl_code</Filter>
+    </None>
+    <None Include="plan_ex8.json">
+      <Filter>sources\assets</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
