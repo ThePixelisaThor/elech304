@@ -69,7 +69,7 @@ bool alt_key = false;
 // int WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nShowCmd) // link to windows => no terminal
 int main(){
     // compute_everything();
-    compute_everything_8();
+    // compute_everything_8();
     // test_opencl();
 
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
@@ -220,15 +220,15 @@ int main(){
     float* energy_table_tx2 = new float[zone_count_x * zone_count_y];
 
     int* ray_count_table = new int[zone_count_x * zone_count_y];
-    int reflection_count = 2;
+    int reflection_count = 3;
 
     double tic = glfwGetTime();
 
     // run_final_algo(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), tx_zone, 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table, ray_count_table);
 
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(-100.f, 5.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx3, ray_count_table, 3, -1.f); // TX3
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(450.f, -250.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1, ray_count_table, 1, 0.f); // TX1
-    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(925.f, -276.795f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1_bis, ray_count_table, 1, 0.f); // TX1 bis
+    run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(-100.f, 5.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx3, ray_count_table, 3, -0.1f); // TX3
+    // run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(450.f, -250.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1, ray_count_table, 1, 0.f); // TX1
+    // run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(925.f, -276.795f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx1_bis, ray_count_table, 1, 0.f); // TX1 bis
     // run_algo_antenna(zone_count_x, zone_count_y, reflection_count, wall_array, walls_obj.size(), vec2(700.f, -500.f), 26.f * pow(10, 9) * 2.f * 3.141592f, energy_table_tx2, ray_count_table, 2, 0.1f); // TX2
 
     double toc = glfwGetTime();
@@ -249,24 +249,18 @@ int main(){
 
     for (int y = 0; y < zone_count_y; y++) {
         for (int x = 0; x < zone_count_x; x++) {
-             // Color c_p = getGradientColor(energy_table_tx3[y * zone_count_x + x], min_energy, max_energy);
+             Color c_p = getGradientColor(energy_table_tx3[y * zone_count_x + x], min_energy, max_energy);
             /*
             Color c_p = getGradientColor(max(energy_table_tx3[y * zone_count_x + x], max(energy_table_tx1[y * zone_count_x + x],
                 max(energy_table_tx1_bis[y * zone_count_x + x], energy_table_tx2[y * zone_count_x + x]))), min_energy, max_energy);
                 */
 
-            
+            /*
             Color c_p = getGradientColor(max(energy_table_tx3[y * zone_count_x + x], max(energy_table_tx1[y * zone_count_x + x],
-                energy_table_tx1_bis[y * zone_count_x + x])), min_energy, max_energy); 
-
-            if (y == 0 && x == 0) {
-                printf("Color %.3f - %.3f - %.3f \n", c_p.r, c_p.g, c_p.b);
-                printf("TX3 %.3f, TX1 %.3f, TX1_bis %.3f, TX2 %.3f\n", energy_table_tx3[0], energy_table_tx1[0],
-                    energy_table_tx1_bis[0], energy_table_tx2[0]);
-            }
+                energy_table_tx1_bis[y * zone_count_x + x])), min_energy, max_energy); */
 
             // Color c_p = getGradientColor(energy_table_tx1_bis[y * zone_count_x + x], min_energy, max_energy);
-            Color c = getGradientColor(ray_count_table[y * zone_count_x + x], 0.f, 50.f);
+            Color c = getGradientColor(ray_count_table[y * zone_count_x + x], 0.f, 100.f);
 
             create_rectangle(vec2(x * 1000.f / zone_count_x, -y * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -y * 700.f / zone_count_y),
                 vec2(x * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y), vec2((x + 1) * 1000.f / zone_count_x, -(y + 1) * 700.f / zone_count_y),
@@ -330,7 +324,7 @@ int main(){
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
 
-        glClearColor(0.2f, 0.2f, 0.2f, 1.f);
+        glClearColor(0.1f, 0.1f, 0.1f, 0.1f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glUseProgram(shader);
         glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
@@ -369,6 +363,42 @@ int main(){
         ImGui::Text("Number of reflections : %d", reflection_count);
         ImGui::Text("Number of zones : %d", zone_count_x * zone_count_y);
         ImGui::Text("Zone of %.1fcm x %.1fcm", 10000.f / zone_count_x, 7000.f / zone_count_y);
+        ImGui::End();
+
+        ImGui::Begin("Legend");
+        ImGui::Text("350          300         250         200          150         100         50 [Mb/s]");
+        {
+            ImDrawList* draw_list = ImGui::GetWindowDrawList();
+            ImVec2 gradient_size(500, 35);
+            // white "gradient"
+            ImVec2 p0 = ImGui::GetCursorScreenPos();
+            ImVec2 p1 = ImVec2(p0.x + 20.f, p0.y + gradient_size.y);
+
+            // red green gradient
+            ImVec2 p2 = ImVec2(p0.x + 20.f, p0.y);
+            ImVec2 p3 = ImVec2(p0.x + gradient_size.x / 2.f + 20.f, p0.y + gradient_size.y);
+
+            // green blue gradient
+            ImVec2 p4 = ImVec2(p0.x + gradient_size.x / 2.f + 20.f, p0.y);
+            ImVec2 p5 = ImVec2(p0.x + gradient_size.x + 20.f - 80.f, p0.y + gradient_size.y);
+
+            // black "gradient"
+            ImVec2 p6 = ImVec2(p0.x + gradient_size.x + 20.f - 80.f, p0.y);
+            ImVec2 p7 = ImVec2(p0.x + gradient_size.x + 40.f, p0.y + gradient_size.y);
+
+            ImU32 col_a = ImGui::GetColorU32(IM_COL32(255, 0, 0, 255));
+            ImU32 col_b = ImGui::GetColorU32(IM_COL32(0, 255, 0, 255));
+            ImU32 col_c = ImGui::GetColorU32(IM_COL32(0, 0, 255, 255));
+            ImU32 col_d = ImGui::GetColorU32(IM_COL32(255, 255, 255, 255));
+            ImU32 col_e = ImGui::GetColorU32(IM_COL32(50, 50, 50, 255));
+
+            draw_list->AddRectFilledMultiColor(p0, p1, col_d, col_d, col_d, col_d);
+            draw_list->AddRectFilledMultiColor(p2, p3, col_a, col_b, col_b, col_a);
+            draw_list->AddRectFilledMultiColor(p4, p5, col_b, col_c, col_c, col_b);
+            draw_list->AddRectFilledMultiColor(p6, p7, col_e, col_e, col_e, col_e);
+            ImGui::InvisibleButton("##gradient", gradient_size);
+        }
+        ImGui::Text("   -60       -63         -66         -70          -73         -76         -80    [dBm]");
         ImGui::End();
 
         ImGui::Render(); // render GUI

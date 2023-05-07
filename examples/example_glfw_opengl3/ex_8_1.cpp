@@ -61,14 +61,14 @@ void compute_everything_8() {
     only_direct.push_back(rays_rx[0]);
 
     float received_power_direct = 10 * log(1000.f * compute_energy_fields(only_direct, pulsation, 73.f)) / log(10.f);
-
+    // -64.77 dBm
     std::vector<Ray> direct_and_1;
     direct_and_1.push_back(rays_rx[0]);
     direct_and_1.push_back(rays_rx[3]);
 
     float received_power_direct_and_one = 10 * log(1000.f * compute_energy_fields(direct_and_1, pulsation, 73.f)) / log(10.f);
-
+    // -64.60 dBm
     float received_power_total = 10 * log(1000.f * compute_energy_fields(rays_rx, pulsation, 73.f)) / log(10.f);
-
+    // -64.87 dBm
     std::cout << "Received power : " << received_power_total << std::endl;
 }

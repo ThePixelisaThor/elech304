@@ -35,7 +35,9 @@ Color getGradientColor(float intensity, float min_intensity, float max_intensity
         c.b = 1.f;
     }
     else {
-        c = BLACK;
+        c.r = 50.f/255.f;
+        c.g = 50.f/255.f;
+        c.b = 50.f/255.f;
     }
 
     return c;
