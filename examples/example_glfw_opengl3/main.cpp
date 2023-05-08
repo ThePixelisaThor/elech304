@@ -69,13 +69,11 @@ bool alt_key = false;
 int main(){
     // compute_everything();
     // compute_everything_8();
-    // test_opencl();
 
     GLFWwindow* mainWindow = NULL; ImGuiIO io; int bufferWidth; int bufferHeight;
     load_all(WIDTH, HEIGHT, mainWindow, bufferWidth, bufferHeight, io);
 
     glfwSetScrollCallback(mainWindow, scroll_callback);
-    // glfwSetKeyCallback(mainWindow, key_callback);
 
     create_shader(shader, shader_texture);
 
@@ -85,7 +83,7 @@ int main(){
     std::ifstream file_material("materials.json");
     json materials_data = json::parse(file_material);
 
-    std::vector<FancyVector> walls; // vector is a list with access by id
+    std::vector<FancyVector> walls;
 
     // parse wall vectors
     for (int i = 0; i < walls_data.size(); i++) {
@@ -113,8 +111,9 @@ int main(){
     float buffer_pos_rx_x = 0;
     float buffer_pos_rx_y = 0;
 
-    bool render_again = true; // temporary fix
+    bool render_again = true; // temporary fix that became permanent
     bool d3 = false;
+    bool show_circles = false;
     // lines
     
     unsigned int VBO_lines[line_count], VAO_lines[line_count], CBO_lines[line_count];
@@ -149,7 +148,6 @@ int main(){
             Color {materials_data[material - 1]["color_r"], materials_data[material - 1]["color_g"] ,materials_data[material - 1]["color_b"] });
     }
 
-    // Wall(float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth);
     std::vector<Wall> walls_obj;
     for (int i = 0; i < walls.size(); i++) {
         int material = walls_data[i]["material_id"] - 1;
@@ -158,7 +156,10 @@ int main(){
     }
 
     // 3D walls
-    unsigned int VBO_rect[600], VAO_rect[600], EBO_rect[600];
+    unsigned int* VBO_rect = new unsigned int[600];
+    unsigned int* VAO_rect = new unsigned int[600];
+    unsigned int* EBO_rect = new unsigned int[600];
+
     glGenVertexArrays(600, VAO_rect);
     glGenBuffers(600, VBO_rect);
     glGenBuffers(600, EBO_rect);
@@ -324,6 +325,7 @@ int main(){
         ImGui::Checkbox("Raycasting", &ray_casting);
         ImGui::Checkbox("Power", &power);
         ImGui::Checkbox("3D", &d3);
+        ImGui::Checkbox("Show circles", &show_circles);
         ImGui::End();
 
         ImGui::Begin("Circle color");
@@ -374,7 +376,7 @@ int main(){
             draw_list->AddRectFilledMultiColor(p6, p7, col_e, col_e, col_e, col_e);
             ImGui::InvisibleButton("##gradient", gradient_size);
         }
-        ImGui::Text("   -60       -63         -66         -70          -73         -76         -80    [dBm]");
+        ImGui::Text("   -60       -63         -66         -70          -73         -76         -80 [dBm]");
         ImGui::End();
 
         ImGui::Render(); // render GUI
@@ -452,9 +454,10 @@ int main(){
         }
 
         // drawing circle
-        draw_arrays(VBO_circle_tx, CBO_circle_tx, 721);
-        draw_arrays(VBO_circle_rx, CBO_circle_rx, 721);
-        
+        if (show_circles) {
+            draw_arrays(VBO_circle_tx, CBO_circle_tx, 721);
+            draw_arrays(VBO_circle_rx, CBO_circle_rx, 721);
+        }
         
         render_again = false;
 

@@ -1,5 +1,5 @@
 // some function for complex numbers, because they are not natively supported by opencl :'(
-// we can choose between floats and doubles, we'll go for floats are a huge precision isn't required to compute coefficients
+// we can choose between floats and doubles, we'll go for floats as a huge precision isn't required to compute coefficients
 // the idea is to use float2 as a complex
 
 typedef float2 cl_float_complex;
@@ -46,7 +46,7 @@ inline float get_antenna_power(int antenna_id, float incident_angle_cos, float a
     if (antenna_id == 3) { // permis car on est que dans le 4e cadran
         return 3.162 * pow(10, (21.5836 - 12 * pown((-acos(incident_angle_cos) - antenna_angle) / 0.5236, 2)) / 10.0); // power of TX3 varies depending on the angle
     }
-    return 1.;
+    return 1.; // default case never triggered
 }
 
 __kernel void compute_zone(__global float* x_coordinates, __global float* y_coordinates,
@@ -59,14 +59,13 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
                 float2 tx,
                 int zone_count_x, __global int* ray_count, int reflection_count, __global float* energy, float beta,
                 float pulsation, int antenna_id, float antenna_angle){
-    // the goal here is to compute the number of ray hitting rx AND the power received, no antennas for now
-    // energy is already squared
+    // the goal here is to compute the number of ray hitting rx AND the power received
 
     // compute_id goes from 0 to zone_count_x * zone_count_y - 1
     // x_coordinate is modified first
     int compute_id = get_global_id(0);
 
-    float total_distance = 0;
+    float total_distance;
     float rx_x = x_coordinates[compute_id % zone_count_x];
     float rx_y = y_coordinates[compute_id / zone_count_x];
 
@@ -75,7 +74,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
     ray_count[compute_id] = 0; // starts at 0
     energy[compute_id] = 0.f;
 
-    float ray_energy;
+    float ray_energy; // contains the product of all coefficients squared !
 
     float2 current_direction;
     float2 current_origin;
@@ -115,7 +114,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
     cl_complex total_reflection_coef;
     cl_complex squared_total_transmission_coef;
 
-    // energy, thoses constants will be eventually moved
+    // energy constants
     // float equivalent_resistance = 73.f; // du récepteur !!
     //float equivalent_resistance = 49.348f; // 20 * (pi L/lambda)²
     float equivalent_resistance = 197.392; // 80 * (pi L/lambda)²
@@ -136,7 +135,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
 
         if (length(current_origin - tx) <= 5) continue; // zone d'exclusion
 
-        while(true) { // no recursion allowed
+        while(true) { // no recursion allowed in GPU mode :'(
             // is it hitting TX, accounting for rounding errors
 
             if (current_direction_normalized.x < current_direction_to_tx_normalized.x + 0.000001 && current_direction_normalized.x > current_direction_to_tx_normalized.x - 0.000001 &&
@@ -144,6 +143,8 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
             reflexion_left == 0) {
                 distance_to_tx = length(tx - current_origin);
                 // a wall could be between the ray reflex and TX, let's find an intersection :
+
+                // ----------------Intersection----------------
                 t = 0;
                 s = 0;
                 best_intersection = (float2) (-1000, -1000);
@@ -177,7 +178,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
 
                 hit_point = best_intersection;
 
-                // end of the intersection
+                // ----------------Intersection End----------------
                 last_wall_id = best_wall_id;
 
                 if (best_wall_id > -1) {
@@ -250,6 +251,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
             }
 
             // if the direction doesn't correspond to hitting tx, let's find the intersection :
+            // ----------------Intersection----------------
             t = 0;
             s = 0;
             best_intersection = (float2) (-1000, -1000);
@@ -284,8 +286,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
             }
 
             hit_point = best_intersection;
-
-            // end of the intersection
+            // ----------------Intersection End----------------
 
             last_wall_id = best_wall_id;
 
@@ -322,12 +323,6 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
                     current_direction_to_tx_normalized = normalize(tx - current_origin);
                     current_direction_normalized = normalize(current_direction);
 
-                    /*
-                    std::complex<float> reflection_coef_after = - (one - c.reflection * c.reflection) * c.reflection
-                    * exp(-two * wall.gamma * transmitted_depth)
-                    * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
-                    */
-
                     total_reflection_coef = cl_complex_multiply(
                                                 cl_complex_multiply(
                                                     cl_complex_multiply(cl_complex_add(- one, squared_reflection_coef), reflection_coef),
@@ -349,15 +344,10 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
 
                     total_reflection_coef = cl_complex_add(total_reflection_coef, reflection_coef);
 
-                    /*
-                    if (compute_id < 2) {
-                        printf("Reflection coef %.5f + i * %.5f = %.5f, total reflection coef %.5f + i * %.5f  = %.5f\n", reflection_coef.x, reflection_coef.y, cl_complex_modulus_squared(reflection_coef),
-                        total_reflection_coef.x, total_reflection_coef.y, cl_complex_modulus_squared(total_reflection_coef));
-                    }*/
-
                     ray_energy *= cl_complex_modulus_squared(total_reflection_coef);
+
                 } else {
-                    // transmission on a random wall
+                    // transmission on a random wall (not a wall meant for reflection)
 
                     total_transmission_coef = cl_complex_multiply(
                                                 cl_complex_add(
@@ -388,10 +378,10 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
         }
     }
 
-    // we want the energy in log
+    // we want the energy in a log scale
     if (energy[compute_id] != 0.f) {
         energy[compute_id] = 10.0 * log10(1000.f * 60.f * pow(equivalent_height, 2) / (8.f * equivalent_resistance) * energy[compute_id]); // factor 1000 to get it in dBm
         } else {
-        energy[compute_id] = -100.f;
+        energy[compute_id] = -100.f; // edge case never triggered
     }
 }
