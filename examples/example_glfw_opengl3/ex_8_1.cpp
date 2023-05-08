@@ -3,6 +3,7 @@
 #include "wall.h"
 #include "ray.h"
 #include "coefficients.h"
+#include "constants.h"
 
 #include "../libs/nlohmann/json.hpp"
 #include "zone_tracing.h"
@@ -11,11 +12,11 @@
 using json = nlohmann::json;
 
 void compute_everything_8() {
-    float pulsation = 2.f * 3.141592f * 868.3f * pow(10, 6);
+    float pulsation = 2.f * PI * 868.3f * pow(10, 6);
     std::complex<float> Z0 = compute_impedance(1.f, 0, 1); // 377 ohms ✅
     std::complex<float> Z1 = compute_impedance(4.8f, 0.018, pulsation); // 171.57 + i*6.65 ✅
 
-    Wall w(0, 4.8f, 0.018f, pulsation, FancyVector{}, 0.15, 0);
+    Wall w(0, 4.8f, 0.018f, pulsation, FancyVector{}, 0.15, 0, 0);
 
     // ex 8
     coefficients c = compute_reflection_coefficients(0.9648f, Z0, w);
@@ -46,7 +47,7 @@ void compute_everything_8() {
         FancyVector temp_vector(a, b);
         int material = walls_data[i]["material_id"] - 1;
         walls[i] = Wall(i, materials_data[material]["e_r"], materials_data[material]["sigma"], pulsation,
-            temp_vector, materials_data[material]["depth"], material + 1);
+            temp_vector, materials_data[material]["depth"], material + 1, 0);
     }
 
     std::vector<Ray> rays_rx;

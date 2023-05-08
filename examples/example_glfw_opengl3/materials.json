@@ -7,7 +7,8 @@
         "color_b": 1.0,
         "depth": 0.5,
         "e_r": 5.0,
-        "sigma": 0.014
+        "sigma": 0.014,
+        "height": 70
     },
     {
         "id": 2,
@@ -17,7 +18,8 @@
         "color_b": 0.0,
         "depth": 0.3,
         "e_r": 4.6,
-        "sigma": 0.02
+        "sigma": 0.02,
+        "height": 70
     },
     {
         "id": 3,
@@ -27,7 +29,8 @@
         "color_b": 1.0,
         "depth": 0.1,
         "e_r": 2.25,
-        "sigma": 0.04
+        "sigma": 0.04,
+        "height": 25
     },
     {
         "id": 4,
@@ -37,7 +40,8 @@
         "color_b": 1.0,
         "depth": 0.1,
         "e_r": 2.25,
-        "sigma": 0.04
+        "sigma": 0.04,
+        "height": 25
     },
     {
         "id": 5,
@@ -47,6 +51,7 @@
         "color_b": 1.0,
         "depth": 0.15,
         "e_r": 4.8,
-        "sigma": 0.018
+        "sigma": 0.018,
+        "height": 25
     }
 ]

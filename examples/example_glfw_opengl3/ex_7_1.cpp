@@ -3,13 +3,14 @@
 #include "wall.h"
 #include "ray.h"
 #include "coefficients.h"
+#include "constants.h"
 
 void compute_everything() {
-    float pulsation = 2.f * 3.141592f * 2.45f * pow(10, 9);
+    float pulsation = 2.f * PI * 2.45f * pow(10, 9);
     std::complex<float> Z0 = compute_impedance(1.f, 0, 1); // 377 ohms ✅
     std::complex<float> Z1 = compute_impedance(6.f, 0.01, pulsation); // 153.8 + 0.94j ✅
 
-    Wall w(0, 6.f, 0.01f, pulsation, FancyVector {}, 0.3, 0);
+    Wall w(0, 6.f, 0.01f, pulsation, FancyVector {}, 0.3, 0, 0);
 
     coefficients c = compute_reflection_coefficients(1.f, Z0, w);
     // R should be 0.42 - j 0.0025 (opposite sign) ✅

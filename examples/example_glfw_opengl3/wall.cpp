@@ -9,7 +9,8 @@ using namespace glm;
 #include <vector>
 #include <complex>
 
-Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth, int _material_id) {
+Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation,
+    FancyVector _fancy_vector, float _depth, int _material_id, float _height) {
     id = _id;
     relative_perm = _relative_perm;
     conductivity = _conductivity;
@@ -19,6 +20,7 @@ Wall::Wall(int _id, float _relative_perm, float _conductivity, float _pulsation,
     set_gamma(_pulsation);
     pulsation = _pulsation;
     material_id = _material_id;
+    height = _height;
 }
 
 void Wall::set_impedance(float pulsation) {

@@ -171,6 +171,7 @@
     <ClCompile Include="ex_8_1.cpp" />
     <ClCompile Include="fancy_vector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main_utilities.cpp" />
     <ClCompile Include="opencl_tests.cpp" />
     <ClCompile Include="ray.cpp" />
     <ClCompile Include="raytracing.cpp" />
@@ -198,6 +199,7 @@
     <ClInclude Include="ex_7_1.h" />
     <ClInclude Include="ex_8_1.h" />
     <ClInclude Include="fancy_vector.h" />
+    <ClInclude Include="main_utilities.h" />
     <ClInclude Include="opencl_tests.h" />
     <ClInclude Include="ray.h" />
     <ClInclude Include="raytracing.h" />
@@ -206,6 +208,7 @@
     <ClInclude Include="shader_utils.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="texture_utils.h" />
+    <ClInclude Include="variables.h" />
     <ClInclude Include="vector_math.h" />
     <ClInclude Include="wall.h" />
     <ClInclude Include="zone_tracing.h" />

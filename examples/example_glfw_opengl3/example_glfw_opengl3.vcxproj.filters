@@ -112,6 +112,9 @@
     <ClCompile Include="rx_field.cpp">
       <Filter>sources\src\tests</Filter>
     </ClCompile>
+    <ClCompile Include="main_utilities.cpp">
+      <Filter>sources\src\other</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\imconfig.h">
@@ -191,6 +194,12 @@
     </ClInclude>
     <ClInclude Include="rx_field.h">
       <Filter>sources\src\tests</Filter>
+    </ClInclude>
+    <ClInclude Include="variables.h">
+      <Filter>sources\src\other</Filter>
+    </ClInclude>
+    <ClInclude Include="main_utilities.h">
+      <Filter>sources\src\other</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

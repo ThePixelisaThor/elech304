@@ -16,9 +16,11 @@ public:
     FancyVector fancy_vector;
     float depth;
     int material_id;
+    float height;
 
-    Wall(int id, float _relative_perm, float _conductivity, float _pulsation, FancyVector _fancy_vector, float _depth, int material_id);
-    Wall() : Wall(0, 0.f, 0.f, 0.f, FancyVector(), 0.f, 0) {} // default constructor needed to create an array
+    Wall(int id, float _relative_perm, float _conductivity, float _pulsation,
+        FancyVector _fancy_vector, float _depth, int material_id, float height);
+    Wall() : Wall(0, 0.f, 0.f, 0.f, FancyVector(), 0.f, 0, 0.f) {} // default constructor needed to create an array
 
     void set_impedance(float pulsation);
 
