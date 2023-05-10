@@ -63,9 +63,9 @@ void generate_new_rays(vec2 tx, vec2 rx, vec2 hit_point, vec2 direction_before, 
 
     if (reflexion_left != 0 && walls_to_reflect[reflexion_left - 1] == wall.id) {
             compute_ray(tx, rx, reflection_vector, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * reflection_coef, total_distance, reflexion_left - 1, max_reflexion);
+            return;
     }
-    else
-        compute_ray(tx, rx, direction_before, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * transmission, total_distance, reflexion_left, max_reflexion);
+    compute_ray(tx, rx, direction_before, hit_point, all_rays, buffer, walls, walls_to_reflect, start_energy * transmission, total_distance, reflexion_left, max_reflexion);
 }
 
 void compute_ray(vec2 tx, vec2 rx, vec2 direction, vec2 ray_origin, vector<Ray>& all_rays, vector<Ray>& buffer, vector<Wall> walls, vector<int>& walls_to_reflect, float start_energy, float total_distance, int reflexion_left, int max_reflexion) {
