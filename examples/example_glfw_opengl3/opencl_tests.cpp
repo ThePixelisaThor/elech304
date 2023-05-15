@@ -383,7 +383,7 @@ void run_algo_antenna(int zone_count_x, int zone_count_y, int reflection_count, 
     int* walls_to_reflect = new int[max_count * reflection_count]; // represents a 2d array [[r1, r2, ...], [r1, r2, ...], ...]
 
     int mirror_count = 0;
-    float beta = pulsation / (3. * pow(10, 8));
+    float beta = pulsation / (299792458.f);
 
     generate_all_mirrors(reflection_count, all_tx_mirrors, each_reflection_count, walls_to_reflect,
         walls, wall_count, mirror_count, tx, max_count);
@@ -671,7 +671,7 @@ void run_final_algo(int zone_count_x, int zone_count_y, int reflection_count, Wa
     int* walls_to_reflect = new int[max_count * reflection_count]; // represents a 2d array [[r1, r2, ...], [r1, r2, ...], ...]
 
     int mirror_count = 0;
-    float beta = pulsation / (3. * pow(10, 8));
+    float beta = pulsation / (299792458.f);
 
     generate_all_mirrors(reflection_count, all_tx_mirrors, each_reflection_count, walls_to_reflect,
         walls, wall_count, mirror_count, tx, max_count);

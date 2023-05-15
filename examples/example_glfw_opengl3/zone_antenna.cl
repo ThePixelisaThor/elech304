@@ -120,7 +120,7 @@ __kernel void compute_zone(__global float* x_coordinates, __global float* y_coor
     float equivalent_resistance = 197.392; // 80 * (pi L/lambda)²
 
     float power = 1.f;
-    float lambda = 3.f * pown(10.f, 8) * 2.f * 3.141592f / pulsation; // 2 pi v / omega
+    float lambda = 299792458.f * 2.f * 3.141592f / pulsation; // 2 pi v / omega
     float equivalent_height = lambda / 3.141592f;
 
     for (int m = 0; m < mirror_count; m++) {

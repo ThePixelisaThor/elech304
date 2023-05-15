@@ -158,8 +158,8 @@ float compute_energy_fields(std::vector<Ray>& rays_hitting, float pulsation, flo
     float directionality = 1.5f; // lambda demi verticale
     float power = 1.0933f * pow(10, -3);
 
-    float lambda = 3.f * pow(10, 8) * 2.f * 3.141592f / pulsation;
-    float beta = pulsation / (3.f * pow(10, 8)); // beta in the air
+    float lambda = 299792458.f * 2.f * 3.141592f / pulsation;
+    float beta = pulsation / (299792458.f); // beta in the air
 
     float equivalent_height = lambda / 3.141592f; // antenne dipôle avec theta = 90°
 

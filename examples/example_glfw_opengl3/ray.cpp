@@ -86,7 +86,7 @@ float compute_total_transmission(float incident_angle_cos, coefficients c, Wall 
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * wall.beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
     */
     std::complex<float> transmission_coef_after = (one - c.reflection * c.reflection) * exp(-wall.gamma * transmitted_depth);
-    float beta = wall.pulsation / (3.f * pow(10, 8));
+    float beta = wall.pulsation / (299792458.f);
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
 
     return pow(transmission_coef_after.real(), 2) + pow(transmission_coef_after.imag(), 2);
@@ -106,7 +106,7 @@ std::complex<float> compute_total_transmission_coefficient(float incident_angle_
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * wall.beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
     */
     std::complex<float> transmission_coef_after = (one - c.reflection * c.reflection) * exp(-wall.gamma * transmitted_depth);
-    float beta = wall.pulsation / (3.f * pow(10, 8));
+    float beta = wall.pulsation / (299792458.f);
     transmission_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
 
     return transmission_coef_after;
@@ -121,7 +121,7 @@ std::complex<float> compute_total_reflection_coefficient(float incident_angle_co
     std::complex<float> two{ 2, 0 }; // 2 + 0j
     std::complex<float> j{ 0, 1 }; // 0 + 1j
 
-    float beta = wall.pulsation / (3.f * pow(10, 8));
+    float beta = wall.pulsation / (299792458.f);
     std::complex<float> reflection_coef_after = - (one - c.reflection * c.reflection) * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
     reflection_coef_after /= one - c.reflection * c.reflection * exp(-two * wall.gamma * transmitted_depth) * exp(j * beta * two * transmitted_depth * transmitted_angle_sin * incident_angle_sin);
 
